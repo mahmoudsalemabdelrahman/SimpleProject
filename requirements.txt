@@ -17,3 +17,4 @@ idna
 urllib3
 cffi
 pycparser
+reportlab
