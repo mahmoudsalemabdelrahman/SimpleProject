@@ -1,0 +1,91 @@
+{% extends "blog/base.html" %}
+{% block title %}شهاداتي{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="fw-bold"><i class="bi bi-award-fill text-warning me-2"></i>شهاداتي</h1>
+                <a href="{% url 'student_dashboard' %}" class="btn btn-outline-primary rounded-pill">
+                    <i class="bi bi-arrow-right me-2"></i>العودة للوحة التحكم
+                </a>
+            </div>
+
+            {% if certificates %}
+                <div class="row g-4">
+                    {% for certificate in certificates %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 hover-lift">
+                            <div class="card-body p-4">
+                                <!-- Certificate Icon -->
+                                <div class="text-center mb-3">
+                                    <i class="bi bi-patch-check-fill text-success" style="font-size: 4rem;"></i>
+                                </div>
+                                
+                                <!-- Course Title -->
+                                <h5 class="card-title fw-bold text-center mb-3">{{ certificate.course.title }}</h5>
+                                
+                                <!-- Certificate Details -->
+                                <div class="text-muted small mb-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi bi-calendar3 me-2"></i>
+                                        <span>تاريخ الإصدار: {{ certificate.issue_date|date:"d M Y" }}</span>
+                                    </div>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi bi-hash me-2"></i>
+                                        <span class="font-monospace">{{ certificate.certificate_id }}</span>
+                                    </div>
+                                    {% if certificate.grade %}
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-star-fill text-warning me-2"></i>
+                                        <span>الدرجة: {{ certificate.grade }}%</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Actions -->
+                                <div class="d-grid gap-2">
+                                    <a href="{% url 'download_certificate' certificate.certificate_id %}" 
+                                       class="btn btn-primary rounded-pill">
+                                        <i class="bi bi-download me-2"></i>تحميل الشهادة
+                                    </a>
+                                    <a href="{% url 'verify_certificate' certificate.certificate_id %}" 
+                                       target="_blank"
+                                       class="btn btn-outline-secondary rounded-pill btn-sm">
+                                        <i class="bi bi-shield-check me-2"></i>التحقق من الشهادة
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-award text-muted" style="font-size: 5rem;"></i>
+                    <h3 class="mt-4 text-muted">لا توجد شهادات بعد</h3>
+                    <p class="text-muted">أكمل الكورسات للحصول على شهادات إتمام</p>
+                    <a href="{% url 'course_list' %}" class="btn btn-primary rounded-pill mt-3">
+                        <i class="bi bi-book me-2"></i>تصفح الكورسات
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+    }
+    .font-monospace {
+        font-family: 'Courier New', monospace;
+        font-size: 0.85rem;
+    }
+</style>
+{% endblock %}

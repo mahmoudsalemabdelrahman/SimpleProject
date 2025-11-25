@@ -1,0 +1,175 @@
+{% extends "blog/base.html" %}
+{% block title %}{{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg rounded-4">
+                <div class="card-body p-5">
+                    <!-- Quiz Title -->
+                    <div class="text-center mb-4">
+                        {% if quiz.quiz_type == 'course' %}
+                            <span class="badge bg-danger fs-6 px-3 py-2 rounded-pill mb-3">امتحان نهائي</span>
+                        {% else %}
+                            <span class="badge bg-primary fs-6 px-3 py-2 rounded-pill mb-3">اختبار درس</span>
+                        {% endif %}
+                        <h1 class="fw-bold">{{ quiz.title }}</h1>
+                        <p class="text-muted">{{ quiz.course.title }}</p>
+                    </div>
+
+                    <!-- Description -->
+                    {% if quiz.description %}
+                    <div class="alert alert-info rounded-4 mb-4">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        {{ quiz.description }}
+                    </div>
+                    {% endif %}
+
+                    <!-- Quiz Info -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center p-3 bg-light rounded-3">
+                                <i class="bi bi-question-circle fs-3 text-primary me-3"></i>
+                                <div>
+                                    <small class="text-muted">عدد الأسئلة</small>
+                                    <h5 class="mb-0">{{ quiz.questions.count }} سؤال</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center p-3 bg-light rounded-3">
+                                <i class="bi bi-trophy fs-3 text-warning me-3"></i>
+                                <div>
+                                    <small class="text-muted">نسبة النجاح</small>
+                                    <h5 class="mb-0">{{ quiz.pass_percentage }}%</h5>
+                                </div>
+                            </div>
+                        </div>
+                        {% if quiz.time_limit %}
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center p-3 bg-light rounded-3">
+                                <i class="bi bi-clock fs-3 text-danger me-3"></i>
+                                <div>
+                                    <small class="text-muted">الوقت المحدد</small>
+                                    <h5 class="mb-0">{{ quiz.time_limit }} دقيقة</h5>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center p-3 bg-light rounded-3">
+                                <i class="bi bi-arrow-repeat fs-3 text-success me-3"></i>
+                                <div>
+                                    <small class="text-muted">المحاولات المتبقية</small>
+                                    <h5 class="mb-0">{{ attempts_left }}/{{ quiz.max_attempts }}</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Best Score -->
+                    {% if best_attempt %}
+                    <div class="alert {% if best_attempt.passed %}alert-success{% else %}alert-warning{% endif %} rounded-4 mb-4">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-star-fill fs-4 me-3"></i>
+                            <div>
+                                <strong>أفضل نتيجة: {{ best_attempt.percentage|floatformat:1 }}%</strong>
+                                {% if best_attempt.passed %}
+                                    <span class="badge bg-success ms-2">ناجح</span>
+                                {% else %}
+                                    <span class="badge bg-warning ms-2">راسب</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Previous Attempts -->
+                    {% if attempts %}
+                    <div class="mb-4">
+                        <h5 class="fw-bold mb-3"><i class="bi bi-clock-history me-2"></i>المحاولات السابقة</h5>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>المحاولة</th>
+                                        <th>التاريخ</th>
+                                        <th>النتيجة</th>
+                                        <th>الحالة</th>
+                                        <th>الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for attempt in attempts %}
+                                    <tr>
+                                        <td>#{{ attempt.attempt_number }}</td>
+                                        <td>{{ attempt.start_time|date:"d/m/Y H:i" }}</td>
+                                        <td>
+                                            {% if attempt.is_completed %}
+                                                <strong>{{ attempt.percentage|floatformat:1 }}%</strong>
+                                            {% else %}
+                                                <span class="text-muted">غير مكتمل</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if attempt.is_completed %}
+                                                {% if attempt.passed %}
+                                                    <span class="badge bg-success">ناجح</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">راسب</span>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="badge bg-secondary">غير مكتمل</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if attempt.is_completed %}
+                                                <a href="{% url 'quiz_results' attempt.id %}" class="btn btn-sm btn-outline-primary rounded-pill">
+                                                    <i class="bi bi-eye"></i> عرض
+                                                </a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Instructions -->
+                    <div class="alert alert-warning rounded-4 mb-4">
+                        <h6 class="fw-bold mb-2"><i class="bi bi-exclamation-triangle-fill me-2"></i>تعليمات مهمة</h6>
+                        <ul class="mb-0 small">
+                            <li>اقرأ كل سؤال بعناية قبل الإجابة</li>
+                            {% if quiz.time_limit %}
+                            <li>لديك {{ quiz.time_limit }} دقيقة لإكمال الاختبار</li>
+                            {% endif %}
+                            <li>لا يمكنك العودة بعد إرسال الإجابات</li>
+                            <li>تأكد من اتصالك بالإنترنت طوال فترة الاختبار</li>
+                        </ul>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2">
+                        {% if attempts_left > 0 %}
+                            <a href="{% url 'take_quiz' quiz.id %}" class="btn btn-primary btn-lg rounded-pill">
+                                <i class="bi bi-play-fill me-2"></i>
+                                {% if attempts %}بدء محاولة جديدة{% else %}بدء الاختبار{% endif %}
+                            </a>
+                        {% else %}
+                            <button class="btn btn-secondary btn-lg rounded-pill" disabled>
+                                <i class="bi bi-x-circle me-2"></i>انتهت المحاولات المتاحة
+                            </button>
+                        {% endif %}
+                        <a href="{% url 'quiz_list' quiz.course.id %}" class="btn btn-outline-secondary rounded-pill">
+                            <i class="bi bi-arrow-right me-2"></i>العودة لقائمة الاختبارات
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

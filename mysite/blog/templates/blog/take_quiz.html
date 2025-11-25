@@ -1,0 +1,211 @@
+{% extends "blog/base.html" %}
+{% block title %}{{ quiz.title }} - الاختبار{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Timer (if applicable) -->
+            {% if quiz.time_limit %}
+            <div class="card border-0 shadow-sm rounded-4 mb-4 sticky-top" style="top: 80px; z-index: 100;">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-clock-fill text-danger me-2"></i>
+                            <strong>الوقت المتبقي:</strong>
+                        </div>
+                        <div id="timer" class="fs-4 fw-bold text-danger">
+                            <span id="minutes">{{ quiz.time_limit }}</span>:<span id="seconds">00</span>
+                        </div>
+                    </div>
+                    <div class="progress mt-2" style="height: 5px;">
+                        <div id="timer-progress" class="progress-bar bg-danger" role="progressbar" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Quiz Form -->
+            <form id="quiz-form" method="POST" action="{% url 'submit_quiz' attempt.id %}">
+                {% csrf_token %}
+                
+                <div class="card border-0 shadow-lg rounded-4">
+                    <div class="card-header bg-primary text-white p-4">
+                        <h3 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>{{ quiz.title }}</h3>
+                        <p class="mb-0 mt-2">المحاولة #{{ attempt.attempt_number }}</p>
+                    </div>
+
+                    <div class="card-body p-4">
+                        {% for question in questions %}
+                        <div class="question-card mb-4 p-4 border rounded-4" id="question-{{ question.id }}">
+                            <!-- Question Number & Text -->
+                            <div class="d-flex align-items-start mb-3">
+                                <span class="badge bg-primary rounded-circle me-3" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                                    {{ forloop.counter }}
+                                </span>
+                                <div class="flex-grow-1">
+                                    <h5 class="fw-bold mb-2">{{ question.question_text }}</h5>
+                                    <small class="text-muted">
+                                        <i class="bi bi-star-fill text-warning"></i> {{ question.points }} نقطة
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Answers -->
+                            <div class="answers ms-5">
+                                {% if question.question_type == 'mcq' or question.question_type == 'true_false' %}
+                                    {% for answer in question.answers.all %}
+                                    <div class="form-check mb-3 p-3 border rounded-3 hover-answer">
+                                        <input class="form-check-input" type="radio" 
+                                               name="question_{{ question.id }}" 
+                                               id="answer_{{ answer.id }}" 
+                                               value="{{ answer.id }}"
+                                               required>
+                                        <label class="form-check-label w-100 cursor-pointer" for="answer_{{ answer.id }}">
+                                            {{ answer.answer_text }}
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                {% elif question.question_type == 'short_answer' %}
+                                    <textarea class="form-control rounded-3" 
+                                              name="text_{{ question.id }}" 
+                                              rows="3" 
+                                              placeholder="اكتب إجابتك هنا..."
+                                              required></textarea>
+                                    <small class="text-muted">سيتم مراجعة هذه الإجابة يدوياً</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                        <!-- Submit Button -->
+                        <div class="text-center mt-5">
+                            <button type="submit" class="btn btn-success btn-lg rounded-pill px-5" id="submit-btn">
+                                <i class="bi bi-send-fill me-2"></i>إرسال الإجابات
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-answer {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .hover-answer:hover {
+        background-color: #f8f9fa;
+        border-color: #6366f1 !important;
+    }
+    .form-check-input:checked + .form-check-label {
+        font-weight: bold;
+        color: #6366f1;
+    }
+    .cursor-pointer {
+        cursor: pointer;
+    }
+    .question-card {
+        background: #ffffff;
+        transition: box-shadow 0.3s ease;
+    }
+    .question-card:hover {
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+</style>
+
+<script>
+// Timer functionality
+{% if quiz.time_limit %}
+let totalSeconds = {{ quiz.time_limit }} * 60;
+let timerInterval;
+
+function updateTimer() {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    
+    document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
+    document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+    
+    // Update progress bar
+    const percentage = (totalSeconds / ({{ quiz.time_limit }} * 60)) * 100;
+    document.getElementById('timer-progress').style.width = percentage + '%';
+    
+    // Change color based on time left
+    if (percentage < 20) {
+        document.getElementById('timer-progress').classList.remove('bg-warning', 'bg-danger');
+        document.getElementById('timer-progress').classList.add('bg-danger');
+    } else if (percentage < 50) {
+        document.getElementById('timer-progress').classList.remove('bg-danger');
+        document.getElementById('timer-progress').classList.add('bg-warning');
+    }
+    
+    if (totalSeconds <= 0) {
+        clearInterval(timerInterval);
+        alert('انتهى الوقت! سيتم إرسال إجاباتك تلقائياً.');
+        document.getElementById('quiz-form').submit();
+    }
+    
+    totalSeconds--;
+}
+
+// Start timer
+timerInterval = setInterval(updateTimer, 1000);
+updateTimer();
+{% endif %}
+
+// Form submission
+document.getElementById('quiz-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    if (!confirm('هل أنت متأكد من إرسال إجاباتك؟ لن تتمكن من التعديل بعد الإرسال.')) {
+        return;
+    }
+    
+    // Disable submit button
+    const submitBtn = document.getElementById('submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>جاري الإرسال...';
+    
+    // Stop timer
+    {% if quiz.time_limit %}
+    clearInterval(timerInterval);
+    {% endif %}
+    
+    // Submit via AJAX
+    const formData = new FormData(this);
+    
+    fetch(this.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            window.location.href = data.redirect_url;
+        } else {
+            alert('حدث خطأ: ' + (data.error || 'حاول مرة أخرى'));
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="bi bi-send-fill me-2"></i>إرسال الإجابات';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="bi bi-send-fill me-2"></i>إرسال الإجابات';
+    });
+});
+
+// Warn before leaving page
+window.addEventListener('beforeunload', function(e) {
+    e.preventDefault();
+    e.returnValue = 'لديك اختبار قيد التقدم. هل أنت متأكد من المغادرة؟';
+});
+</script>
+{% endblock %}

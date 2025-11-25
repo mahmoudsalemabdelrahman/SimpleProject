@@ -1,0 +1,86 @@
+{% extends "blog/base.html" %}
+{% block title %}مكتبة الفيديو{% endblock %}
+
+{% block content %}
+<div class="container py-5 fade-in">
+    
+    <!-- Live Stream Section -->
+    {% if live_stream %}
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-dark text-white">
+                <div class="card-header bg-danger text-white border-0 py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-broadcast me-2 animate-pulse"></i> بث مباشر الآن</h5>
+                    <span class="badge bg-white text-danger animate-pulse">LIVE</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="ratio ratio-16x9">
+                        {% if live_stream.youtube_url %}
+                            <iframe src="{{ live_stream.youtube_url }}" allowfullscreen></iframe>
+                        {% elif live_stream.video_file %}
+                            <video controls autoplay>
+                                <source src="{{ live_stream.video_file.url }}" type="video/mp4">
+                            </video>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-footer bg-dark border-top border-secondary p-3">
+                    <h4 class="fw-bold mb-1">{{ live_stream.title }}</h4>
+                    <p class="text-light opacity-75 mb-0">{{ live_stream.description }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="text-center mb-5">
+        <h1 class="fw-bold display-5 text-primary">مكتبة الفيديو</h1>
+        <p class="text-muted fs-5">شاهد أحدث الفيديوهات والشروحات</p>
+    </div>
+
+    <div class="row g-4">
+        {% for video in videos %}
+            {% if not video.is_live %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm hover-shadow transition-all rounded-4 overflow-hidden">
+                    <div class="ratio ratio-16x9 bg-light">
+                        {% if video.youtube_url %}
+                            <iframe src="{{ video.youtube_url }}" allowfullscreen></iframe>
+                        {% elif video.video_file %}
+                            <video controls>
+                                <source src="{{ video.video_file.url }}" type="video/mp4">
+                            </video>
+                        {% else %}
+                            <div class="d-flex align-items-center justify-content-center text-muted">
+                                <i class="bi bi-play-circle fs-1"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title fw-bold mb-2">{{ video.title }}</h5>
+                        <p class="card-text text-muted small">{{ video.description|truncatechars:100 }}</p>
+                        <small class="text-muted"><i class="bi bi-clock me-1"></i> {{ video.created_at|timesince }} مضت</small>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="text-muted">
+                <i class="bi bi-play-btn fs-1 mb-3 d-block"></i>
+                <p class="fs-5">لا توجد فيديوهات متاحة حالياً.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+    .animate-pulse { animation: pulse 2s infinite; }
+</style>
+{% endblock %}

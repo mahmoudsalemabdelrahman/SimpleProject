@@ -1,0 +1,118 @@
+{% extends "blog/base.html" %}
+{% block title %}مراجعة الإجابات - {{ attempt.quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="fw-bold mb-1"><i class="bi bi-eye-fill me-2"></i>مراجعة الإجابات</h3>
+                            <p class="text-muted mb-0">{{ attempt.quiz.title }} - المحاولة #{{ attempt.attempt_number }}</p>
+                        </div>
+                        <div class="text-end">
+                            <h4 class="mb-0 {% if attempt.passed %}text-success{% else %}text-danger{% endif %}">
+                                {{ attempt.percentage|floatformat:1 }}%
+                            </h4>
+                            <small class="text-muted">{{ attempt.score }}/{{ attempt.quiz.total_points }} نقطة</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Questions Review -->
+            {% for data in questions_data %}
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-4">
+                    <!-- Question Header -->
+                    <div class="d-flex align-items-start mb-3">
+                        <span class="badge {% if data.user_answer.is_correct %}bg-success{% else %}bg-danger{% endif %} rounded-circle me-3" 
+                              style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                            {% if data.user_answer.is_correct %}
+                                <i class="bi bi-check"></i>
+                            {% else %}
+                                <i class="bi bi-x"></i>
+                            {% endif %}
+                        </span>
+                        <div class="flex-grow-1">
+                            <h5 class="fw-bold mb-2">{{ forloop.counter }}. {{ data.question.question_text }}</h5>
+                            <div class="d-flex align-items-center gap-3">
+                                <small class="text-muted">
+                                    <i class="bi bi-star-fill text-warning"></i> {{ data.question.points }} نقطة
+                                </small>
+                                <small class="{% if data.user_answer.is_correct %}text-success{% else %}text-danger{% endif %} fw-bold">
+                                    {% if data.user_answer.is_correct %}
+                                        <i class="bi bi-check-circle-fill"></i> إجابة صحيحة
+                                    {% else %}
+                                        <i class="bi bi-x-circle-fill"></i> إجابة خاطئة
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Answers -->
+                    <div class="ms-5">
+                        {% if data.question.question_type == 'mcq' or data.question.question_type == 'true_false' %}
+                            {% for answer in data.all_answers %}
+                            <div class="p-3 mb-2 rounded-3 border
+                                {% if answer.is_correct %}
+                                    border-success bg-success bg-opacity-10
+                                {% elif data.user_answer.selected_answer.id == answer.id and not answer.is_correct %}
+                                    border-danger bg-danger bg-opacity-10
+                                {% endif %}">
+                                <div class="d-flex align-items-center">
+                                    {% if answer.is_correct %}
+                                        <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    {% elif data.user_answer.selected_answer.id == answer.id %}
+                                        <i class="bi bi-x-circle-fill text-danger me-2"></i>
+                                    {% else %}
+                                        <i class="bi bi-circle text-muted me-2"></i>
+                                    {% endif %}
+                                    <span class="{% if answer.is_correct %}fw-bold text-success{% elif data.user_answer.selected_answer.id == answer.id %}fw-bold text-danger{% endif %}">
+                                        {{ answer.answer_text }}
+                                    </span>
+                                    {% if answer.is_correct %}
+                                        <span class="badge bg-success ms-auto">الإجابة الصحيحة</span>
+                                    {% elif data.user_answer.selected_answer.id == answer.id %}
+                                        <span class="badge bg-danger ms-auto">إجابتك</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% elif data.question.question_type == 'short_answer' %}
+                            <div class="alert alert-info rounded-3">
+                                <strong>إجابتك:</strong><br>
+                                {{ data.user_answer.text_answer|default:"لم يتم الإجابة" }}
+                            </div>
+                            <div class="alert alert-warning rounded-3">
+                                <i class="bi bi-info-circle-fill me-2"></i>
+                                <strong>ملاحظة:</strong> هذا السؤال يحتاج مراجعة يدوية من المدرب.
+                            </div>
+                        {% endif %}
+
+                        <!-- Explanation -->
+                        {% if data.question.explanation %}
+                        <div class="alert alert-light rounded-3 mt-3">
+                            <strong><i class="bi bi-lightbulb-fill text-warning me-2"></i>الشرح:</strong><br>
+                            {{ data.question.explanation }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Back Button -->
+            <div class="text-center mt-4">
+                <a href="{% url 'quiz_results' attempt.id %}" class="btn btn-primary rounded-pill px-5">
+                    <i class="bi bi-arrow-right me-2"></i>العودة للنتائج
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

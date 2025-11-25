@@ -1,0 +1,9 @@
+Django>=5.0
+Pillow
+django-autoslug
+django-extensions
+reportlab
+django-allauth
+PyJWT
+cryptography
+stripe>=8.0.0

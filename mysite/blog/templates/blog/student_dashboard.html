@@ -1,0 +1,201 @@
+{% extends "blog/base.html" %}
+{% block title %}لوحتي التعليمية{% endblock %}
+
+{% block content %}
+<div class="container py-5 fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="fw-bold display-5 text-primary">لوحتي التعليمية</h1>
+            <p class="text-muted fs-5">تابع تقدمك في الكورسات</p>
+        </div>
+        <a href="{% url 'course_list' %}" class="btn btn-outline-primary rounded-pill px-4">
+            <i class="bi bi-search me-2"></i> تصفح الكورسات
+        </a>
+    </div>
+
+    {% if courses_data %}
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+                <div class="text-white">
+                    <i class="bi bi-journal-bookmark fs-1 mb-3 d-block opacity-75"></i>
+                    <h3 class="fw-bold mb-1">{{ total_courses }}</h3>
+                    <p class="mb-0 opacity-90">إجمالي الكورسات</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4" style="background: linear-gradient(135deg, #ec4899, #f43f5e);">
+                <div class="text-white">
+                    <i class="bi bi-check-circle fs-1 mb-3 d-block opacity-75"></i>
+                    <h3 class="fw-bold mb-1">{{ total_completed_lessons }}</h3>
+                    <p class="mb-0 opacity-90">الدروس المكتملة</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4" style="background: linear-gradient(135deg, #14b8a6, #06b6d4);">
+                <div class="text-white">
+                    <i class="bi bi-graph-up fs-1 mb-3 d-block opacity-75"></i>
+                    <h3 class="fw-bold mb-1">{{ overall_progress }}%</h3>
+                    <p class="mb-0 opacity-90">التقدم الإجمالي</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <h5 class="fw-bold mb-4">التقدم الإجمالي</h5>
+                <canvas id="progressChart" style="max-height: 250px;"></canvas>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <h5 class="fw-bold mb-4">النشاط الأسبوعي</h5>
+                <canvas id="activityChart" style="max-height: 250px;"></canvas>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Courses Grid -->
+    <h4 class="fw-bold mb-4">كورساتي</h4>
+    <div class="row g-4">
+        {% for item in courses_data %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-lg rounded-4 overflow-hidden">
+                {% if item.course.image %}
+                    <img src="{{ item.course.image.url }}" class="card-img-top" alt="{{ item.course.title }}" style="height: 180px; object-fit: cover;">
+                {% else %}
+                    <div class="bg-light d-flex align-items-center justify-content-center" style="height: 180px;">
+                        <i class="bi bi-mortarboard fs-1 text-muted"></i>
+                    </div>
+                {% endif %}
+                
+                <div class="card-body p-4">
+                    <h5 class="card-title fw-bold mb-3">{{ item.course.title }}</h5>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small class="fw-bold text-primary">التقدم</small>
+                            <small class="fw-bold text-primary">{{ item.progress }}%</small>
+                        </div>
+                        <div class="progress" style="height: 8px; border-radius: 4px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ item.progress }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <p class="text-muted small mb-4">
+                        <i class="bi bi-check-circle-fill text-success me-1"></i>
+                        أكملت {{ item.completed_lessons }} من {{ item.total_lessons }} درس
+                    </p>
+                    
+                    <div class="d-grid">
+                        <a href="{% url 'course_detail' item.course.pk %}" class="btn btn-primary rounded-pill fw-bold">
+                            <i class="bi bi-play-circle me-2"></i> متابعة التعلم
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="text-muted">
+                <i class="bi bi-journal-x fs-1 mb-3 d-block"></i>
+                <p class="fs-5">أنت غير مشترك في أي كورس حالياً.</p>
+                <a href="{% url 'course_list' %}" class="btn btn-primary rounded-pill mt-3 px-4">
+                    تصفح الكورسات المتاحة
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% if courses_data %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Progress Donut Chart
+const progressCtx = document.getElementById('progressChart').getContext('2d');
+new Chart(progressCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['مكتمل', 'متبقي'],
+        datasets: [{
+            data: [{{ overall_progress }}, {{ 100|add:overall_progress|add:"-100" }}],
+            backgroundColor: [
+                'rgba(99, 102, 241, 0.8)',
+                'rgba(226, 232, 240, 0.3)'
+            ],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    padding: 20,
+                    font: {
+                        family: 'Cairo',
+                        size: 14
+                    }
+                }
+            }
+        },
+        cutout: '70%'
+    }
+});
+
+// Weekly Activity Bar Chart
+const activityCtx = document.getElementById('activityChart').getContext('2d');
+new Chart(activityCtx, {
+    type: 'bar',
+    data: {
+        labels: {{ weekly_labels|safe }},
+        datasets: [{
+            label: 'دروس مكتملة',
+            data: {{ weekly_activity|safe }},
+            backgroundColor: 'rgba(236, 72, 153, 0.8)',
+            borderRadius: 8,
+            barThickness: 30
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1,
+                    font: {
+                        family: 'Cairo'
+                    }
+                }
+            },
+            x: {
+                ticks: {
+                    font: {
+                        family: 'Cairo'
+                    }
+                }
+            }
+        }
+    }
+});
+</script>
+{% endif %}
+{% endblock %}

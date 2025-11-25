@@ -1,0 +1,66 @@
+{% extends "blog/base.html" %}
+{% block title %}سياسة الخصوصية{% endblock %}
+
+{% block content %}
+<div class="container py-5 fade-in">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="fw-bold display-5 text-primary mb-4">سياسة الخصوصية</h1>
+            
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                <h3 class="fw-bold mb-3">مقدمة</h3>
+                <p>نحن في مدونتي نحترم خصوصيتك ونلتزم بحماية بياناتك الشخصية. توضح هذه السياسة كيفية جمع واستخدام وحماية معلوماتك.</p>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                <h3 class="fw-bold mb-3">المعلومات التي نجمعها</h3>
+                <ul>
+                    <li>معلومات الحساب: الاسم، البريد الإلكتروني، كلمة المرور</li>
+                    <li>معلومات الاستخدام: الكورسات المشترك بها، التقدم في الدروس</li>
+                    <li>معلومات تقنية: عنوان IP، نوع المتصفح، نظام التشغيل</li>
+                </ul>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                <h3 class="fw-bold mb-3">كيف نستخدم معلوماتك</h3>
+                <ul>
+                    <li>تقديم وتحسين خدماتنا التعليمية</li>
+                    <li>إرسال تحديثات حول الكورسات الجديدة (إذا اشتركت في النشرة البريدية)</li>
+                    <li>تحليل استخدام الموقع لتحسين تجربة المستخدم</li>
+                    <li>الامتثال للمتطلبات القانونية</li>
+                </ul>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                <h3 class="fw-bold mb-3">حماية البيانات</h3>
+                <p>نستخدم تدابير أمنية متقدمة لحماية بياناتك من الوصول غير المصرح به أو التعديل أو الكشف أو التدمير.</p>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                <h3 class="fw-bold mb-3">ملفات تعريف الارتباط (Cookies)</h3>
+                <p>نستخدم ملفات تعريف الارتباط لتحسين تجربتك على الموقع، بما في ذلك تذكر تفضيلاتك وتسجيل الدخول.</p>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                <h3 class="fw-bold mb-3">حقوقك</h3>
+                <ul>
+                    <li>الوصول إلى بياناتك الشخصية</li>
+                    <li>تصحيح أو تحديث معلوماتك</li>
+                    <li>حذف حسابك وبياناتك</li>
+                    <li>إلغاء الاشتراك في النشرة البريدية</li>
+                </ul>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                <h3 class="fw-bold mb-3">التواصل معنا</h3>
+                <p>إذا كان لديك أي أسئلة حول سياسة الخصوصية، يرجى <a href="{% url 'contact' %}" class="text-primary fw-bold">الاتصال بنا</a>.</p>
+            </div>
+
+            <div class="alert alert-info rounded-4">
+                <i class="bi bi-info-circle me-2"></i>
+                آخر تحديث: {% now "d F Y" %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

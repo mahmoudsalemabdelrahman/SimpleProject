@@ -1,0 +1,14 @@
+{% extends "blog/base.html" %}
+{% block content %}
+<div class="card mx-auto" style="max-width:600px;">
+    <div class="card-body text-center">
+        <h4 class="text-danger">هل تريد حذف المنشور؟</h4>
+        <p>{{ post.title }}</p>
+        <form method="POST">
+            {% csrf_token %}
+            <button class="btn btn-danger">تأكيد الحذف</button>
+            <a href="{% url 'post_detail' post.slug %}" class="btn btn-secondary">إلغاء</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

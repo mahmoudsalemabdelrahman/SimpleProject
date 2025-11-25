@@ -1,0 +1,88 @@
+{% extends "blog/base.html" %}
+{% block title %}الكورسات التعليمية{% endblock %}
+
+{% block content %}
+<div class="container py-5 fade-in">
+    <div class="text-center mb-5">
+        <h1 class="fw-bold display-5 text-primary">الكورسات التعليمية</h1>
+        <p class="text-muted fs-5">تعلم مهارات جديدة مع نخبة من أفضل الكورسات</p>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="row mb-4">
+        <div class="col-lg-8 mx-auto">
+            <form method="GET" class="card border-0 shadow-sm rounded-4 p-3">
+                <div class="row g-3">
+                    <div class="col-md-5">
+                        <input type="text" name="q" class="form-control rounded-pill" placeholder="ابحث عن كورس..." value="{{ search_query }}">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="price" class="form-select rounded-pill">
+                            <option value="">كل الأسعار</option>
+                            <option value="free" {% if price_filter == 'free' %}selected{% endif %}>مجاني</option>
+                            <option value="paid" {% if price_filter == 'paid' %}selected{% endif %}>مدفوع</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="sort" class="form-select rounded-pill">
+                            <option value="-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>الأحدث</option>
+                            <option value="popular" {% if sort_by == 'popular' %}selected{% endif %}>الأكثر شعبية</option>
+                            <option value="price_low" {% if sort_by == 'price_low' %}selected{% endif %}>السعر: من الأقل</option>
+                            <option value="price_high" {% if sort_by == 'price_high' %}selected{% endif %}>السعر: من الأعلى</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-primary rounded-circle w-100"><i class="bi bi-search"></i></button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {% for course in courses %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-lg rounded-4 overflow-hidden hover-lift">
+                {% if course.image %}
+                    <img src="{{ course.image.url }}" class="card-img-top" alt="{{ course.title }}" style="height: 220px; object-fit: cover;">
+                {% else %}
+                    <div class="bg-light d-flex align-items-center justify-content-center" style="height: 220px;">
+                        <i class="bi bi-mortarboard fs-1 text-muted"></i>
+                    </div>
+                {% endif %}
+                
+                <div class="card-body p-4">
+                    <h4 class="card-title fw-bold mb-3">{{ course.title }}</h4>
+                    <p class="card-text text-muted mb-4">{{ course.description|truncatechars:120 }}</p>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-auto">
+                        <span class="badge bg-success rounded-pill px-3 py-2 fs-6">
+                            {% if course.price > 0 %}
+                                {{ course.price }} ج.م
+                            {% else %}
+                                مجاني
+                            {% endif %}
+                        </span>
+                        <a href="{% url 'course_detail' course.pk %}" class="btn btn-outline-primary rounded-pill px-4 fw-bold">
+                            التفاصيل <i class="bi bi-arrow-left ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="text-muted">
+                <i class="bi bi-journal-bookmark fs-1 mb-3 d-block"></i>
+                <p class="fs-5">لا توجد كورسات متاحة حالياً.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .hover-lift { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .hover-lift:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important; }
+</style>
+{% endblock %}

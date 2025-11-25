@@ -1,0 +1,54 @@
+{% extends "blog/base.html" %}
+{% block title %}تم الدفع بنجاح{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center fade-in">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-lg rounded-4 p-5">
+                <div class="mb-4">
+                    <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center mx-auto shadow-sm" style="width: 100px; height: 100px; font-size: 3rem;">
+                        <i class="bi bi-check-lg"></i>
+                    </div>
+                </div>
+                
+                <h2 class="fw-bold mb-3 text-success">تم الدفع بنجاح!</h2>
+                <p class="text-muted mb-4 lead">شكراً لك، {{ user.first_name }}. تم تفعيل اشتراكك في الكورس بنجاح.</p>
+                
+                <div class="bg-light p-4 rounded-4 mb-4 text-start">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">الكورس:</span>
+                        <span class="fw-bold">{{ order.course.title }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">المبلغ:</span>
+                        <span class="fw-bold">${{ order.amount }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">رقم المعاملة:</span>
+                        <span class="font-monospace small">{{ order.transaction_id }}</span>
+                    </div>
+                </div>
+
+                <div class="d-grid">
+                    <a href="{% url 'course_detail' order.course.id %}" class="btn btn-primary btn-lg rounded-pill shadow-sm">
+                        ابدأ التعلم الآن <i class="bi bi-arrow-left ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confetti Effect -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script>
+    window.onload = function() {
+        confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+        });
+    };
+</script>
+{% endblock %}

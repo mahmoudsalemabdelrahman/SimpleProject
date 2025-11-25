@@ -1,0 +1,171 @@
+{% extends "blog/base.html" %}
+{% block title %}الرئيسية{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="py-5 text-center container fade-in">
+    <div class="row py-lg-5">
+        <div class="col-lg-8 col-md-10 mx-auto">
+            <h1 class="fw-black display-4 mb-3" style="font-weight: 900; letter-spacing: -1px;">
+                أهلاً بك في <span style="background: linear-gradient(120deg, var(--primary-color), var(--accent-color)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">مدونتي</span>
+            </h1>
+            <p class="lead text-muted mb-5">
+                مساحة لاستكشاف الأفكار الجديدة، القصص الملهمة، والمحتوى التقني المتميز.
+            </p>
+            <div class="d-flex justify-content-center gap-3">
+                {% if user.is_staff %}
+                    <a href="{% url 'post_create' %}" class="btn btn-primary btn-lg px-5 rounded-pill shadow-lg">
+                        <i class="bi bi-pencil-fill me-2"></i>اكتب مقالاً
+                    </a>
+                {% endif %}
+                <a href="#posts" class="btn btn-outline-secondary btn-lg px-5 rounded-pill">
+                    تصفح المقالات
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Filter & Search (Optional enhancement) -->
+<div class="container mb-5 fade-in" style="animation-delay: 0.1s;">
+    <div class="d-flex justify-content-center flex-wrap gap-2">
+        <a href="{% url 'post_list' %}" class="btn btn-sm {% if not selected_category %}btn-dark{% else %}btn-light{% endif %} rounded-pill px-3">الكل</a>
+        {% for cat in categories %}
+            <a href="?category={{ cat.slug }}" class="btn btn-sm {% if selected_category == cat.slug %}btn-dark{% else %}btn-light{% endif %} rounded-pill px-3">
+                {{ cat.name }}
+            </a>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Course Search Results -->
+{% if courses %}
+<div class="container mb-5 fade-in">
+    <h3 class="fw-bold mb-4 border-end border-5 border-primary pe-3">نتائج البحث في الكورسات</h3>
+    <div class="row g-4">
+        {% for course in courses %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm hover-card">
+                    <div class="position-relative">
+                        {% if course.image %}
+                            <img src="{{ course.image.url }}" class="card-img-top" alt="{{ course.title }}" style="height: 200px; object-fit: cover;">
+                        {% else %}
+                            <div class="bg-light d-flex align-items-center justify-content-center text-muted" style="height: 200px;">
+                                <i class="bi bi-journal-bookmark fs-1"></i>
+                            </div>
+                        {% endif %}
+                        <div class="position-absolute top-0 end-0 m-3">
+                            <span class="badge bg-primary shadow-sm rounded-pill px-3 py-2">
+                                {% if course.price == 0 %}مجاني{% else %}{{ course.price }} ${% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <h5 class="card-title fw-bold mb-2">{{ course.title }}</h5>
+                        <p class="text-muted small mb-3">{{ course.description|truncatechars:80 }}</p>
+                        <a href="{% url 'course_detail' course.pk %}" class="btn btn-outline-primary w-100 rounded-pill">عرض الكورس</a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    <hr class="my-5">
+</div>
+{% endif %}
+
+<!-- Posts Grid -->
+<div class="container mb-5" id="posts">
+    <div class="row g-4">
+        {% for post in posts %}
+            <div class="col-md-6 col-lg-4 fade-in" style="animation-delay: 0.2s;">
+                <div class="card h-100 border-0 shadow-sm hover-card">
+                    <div class="position-relative">
+                        {% if post.image %}
+                            <img src="{{ post.image.url }}" class="card-img-top" alt="{{ post.title }}" style="height: 240px; object-fit: cover;">
+                        {% else %}
+                            <div class="bg-light d-flex align-items-center justify-content-center text-muted" style="height: 240px;">
+                                <i class="bi bi-image fs-1"></i>
+                            </div>
+                        {% endif %}
+                        <div class="position-absolute top-0 end-0 m-3">
+                            <span class="badge bg-white text-dark shadow-sm rounded-pill px-3 py-2">
+                                {{ post.category.name|default:"عام" }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                <i class="bi bi-person-fill text-secondary"></i>
+                            </div>
+                            <small class="text-muted fw-bold">{{ post.author.username }}</small>
+                            <span class="mx-2 text-muted">•</span>
+                            <small class="text-muted">{{ post.created_at|date:"d M Y" }}</small>
+                        </div>
+
+                        <h4 class="card-title fw-bold mb-3">
+                            <a href="{% url 'post_detail' post.slug %}" class="text-decoration-none text-dark stretched-link">
+                                {{ post.title }}
+                            </a>
+                        </h4>
+                        
+                        <p class="card-text text-muted mb-4 flex-grow-1" style="line-height: 1.6;">
+                            {{ post.content|striptags|truncatechars:120 }}
+                        </p>
+
+                        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                            <div class="d-flex align-items-center text-muted">
+                                <i class="bi bi-heart-fill text-danger me-1"></i>
+                                <span class="small fw-bold">{{ post.total_likes }}</span>
+                            </div>
+                            <span class="text-primary fw-bold small">قراءة المزيد <i class="bi bi-arrow-left ms-1"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12 text-center py-5">
+                <div class="display-1 text-muted mb-3"><i class="bi bi-inbox"></i></div>
+                <h3 class="fw-bold text-muted">لا توجد مقالات حتى الآن</h3>
+                <p class="text-muted">كن أول من يشاركنا المعرفة!</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if posts.has_other_pages %}
+    <nav class="mt-5">
+        <ul class="pagination justify-content-center gap-2">
+            {% if posts.has_previous %}
+                <li class="page-item">
+                    <a class="page-link rounded-circle d-flex align-items-center justify-content-center shadow-sm border-0" 
+                       href="?page={{ posts.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}"
+                       style="width: 40px; height: 40px;">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            {% endif %}
+
+            <li class="page-item disabled">
+                <span class="page-link border-0 bg-transparent fw-bold">
+                    {{ posts.number }} / {{ posts.paginator.num_pages }}
+                </span>
+            </li>
+
+            {% if posts.has_next %}
+                <li class="page-item">
+                    <a class="page-link rounded-circle d-flex align-items-center justify-content-center shadow-sm border-0" 
+                       href="?page={{ posts.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}"
+                       style="width: 40px; height: 40px;">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+{% endblock %}

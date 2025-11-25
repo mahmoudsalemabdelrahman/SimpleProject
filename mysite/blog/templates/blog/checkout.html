@@ -1,0 +1,59 @@
+{% extends "blog/base.html" %}
+{% block title %}إتمام الدفع{% endblock %}
+
+{% block content %}
+<div class="container py-5 fade-in">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-header bg-primary text-white p-4 text-center">
+                    <h4 class="mb-0 fw-bold"><i class="bi bi-credit-card-2-front me-2"></i>إتمام الدفع</h4>
+                </div>
+                <div class="card-body p-4 p-lg-5">
+                    <div class="text-center mb-4">
+                        <small class="text-muted text-uppercase fw-bold">تفاصيل الطلب</small>
+                        <h3 class="fw-bold mt-2">{{ order.course.title }}</h3>
+                        <div class="display-4 fw-bold text-primary my-3">${{ order.amount }}</div>
+                        <span class="badge bg-light text-dark border rounded-pill px-3 py-2">
+                            رقم المعاملة: {{ order.transaction_id }}
+                        </span>
+                    </div>
+
+                    <div class="alert alert-info border-0 rounded-3 d-flex align-items-center">
+                        <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+                        <div>
+                            <strong>وضع المحاكاة:</strong> لن يتم خصم أي مبالغ حقيقية. اضغط على الزر أدناه لإتمام العملية.
+                        </div>
+                    </div>
+
+                    <form action="{% url 'process_payment' order.id %}" method="POST" id="paymentForm">
+                        {% csrf_token %}
+                        <div class="d-grid gap-3">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill py-3 fw-bold shadow-sm" id="payButton">
+                                <span id="btnText">دفع الآن <i class="bi bi-arrow-left ms-2"></i></span>
+                                <span id="btnSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            </button>
+                            <a href="{% url 'course_detail' order.course.id %}" class="btn btn-outline-secondary rounded-pill">إلغاء</a>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer bg-light text-center py-3">
+                    <small class="text-muted"><i class="bi bi-lock-fill me-1"></i> جميع المعاملات مشفرة وآمنة</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('paymentForm').addEventListener('submit', function() {
+        var btn = document.getElementById('payButton');
+        var text = document.getElementById('btnText');
+        var spinner = document.getElementById('btnSpinner');
+        
+        btn.disabled = true;
+        text.textContent = 'جاري المعالجة...';
+        spinner.classList.remove('d-none');
+    });
+</script>
+{% endblock %}

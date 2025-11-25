@@ -1,0 +1,27 @@
+{% extends "blog/base.html" %}
+{% block title %}تم التفعيل بنجاح{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-lg rounded-4 p-5">
+                <div class="mb-4">
+                    <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 80px; height: 80px;">
+                        <i class="bi bi-check-lg fs-1"></i>
+                    </div>
+                </div>
+                
+                <h2 class="fw-bold mb-3 text-success">تم تفعيل حسابك بنجاح!</h2>
+                <p class="text-muted mb-4">
+                    مرحباً <strong>{{ user.username }}</strong>، يمكنك الآن تسجيل الدخول والاستمتاع بجميع الميزات.
+                </p>
+                
+                <a href="{% url 'login' %}" class="btn btn-primary btn-lg rounded-pill px-5">
+                    تسجيل الدخول <i class="bi bi-arrow-left ms-2"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

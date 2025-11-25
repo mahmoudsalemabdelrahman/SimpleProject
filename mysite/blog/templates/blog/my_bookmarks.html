@@ -1,0 +1,48 @@
+{% extends "blog/base.html" %}
+{% block title %}محفوظاتي{% endblock %}
+
+{% block content %}
+<div class="container py-5 fade-in">
+    <h1 class="fw-bold display-5 text-primary mb-5"><i class="bi bi-bookmark-fill me-3"></i>محفوظاتي</h1>
+    
+    <div class="row g-4">
+        {% for bookmark in bookmarks %}
+            {% if bookmark.post %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden">
+                    {% if bookmark.post.image %}
+                        <img src="{{ bookmark.post.image.url }}" class="card-img-top" style="height: 200px; object-fit: cover;" alt="{{ bookmark.post.title }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <span class="badge bg-primary mb-2">مقال</span>
+                        <h5 class="card-title fw-bold">{{ bookmark.post.title }}</h5>
+                        <p class="text-muted small">{{ bookmark.post.content|striptags|truncatewords:15 }}</p>
+                        <a href="{% url 'post_detail' bookmark.post.slug %}" class="btn btn-outline-primary btn-sm rounded-pill">قراءة المزيد</a>
+                    </div>
+                </div>
+            </div>
+            {% elif bookmark.course %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden">
+                    {% if bookmark.course.image %}
+                        <img src="{{ bookmark.course.image.url }}" class="card-img-top" style="height: 200px; object-fit: cover;" alt="{{ bookmark.course.title }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <span class="badge bg-success mb-2">كورس</span>
+                        <h5 class="card-title fw-bold">{{ bookmark.course.title }}</h5>
+                        <p class="text-muted small">{{ bookmark.course.description|truncatewords:15 }}</p>
+                        <a href="{% url 'course_detail' bookmark.course.pk %}" class="btn btn-outline-success btn-sm rounded-pill">عرض الكورس</a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="bi bi-bookmark-x fs-1 text-muted mb-3 d-block"></i>
+            <p class="text-muted fs-5">لا توجد محفوظات بعد</p>
+            <a href="{% url 'post_list' %}" class="btn btn-primary rounded-pill mt-3">تصفح المقالات</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

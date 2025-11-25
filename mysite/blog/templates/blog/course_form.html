@@ -1,0 +1,55 @@
+{% extends "blog/base.html" %}
+{% block title %}إضافة كورس جديد{% endblock %}
+
+{% block content %}
+<div class="container py-5 fade-in">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-header bg-white border-0 p-4">
+                    <h2 class="fw-bold text-success mb-0"><i class="bi bi-mortarboard me-2"></i>إضافة كورس جديد</h2>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <strong>تنبيه:</strong> يرجى تصحيح الأخطاء أدناه.
+                                {{ form.errors }}
+                            </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">عنوان الكورس</label>
+                            {{ form.title }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">وصف الكورس</label>
+                            {{ form.description }}
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">صورة الكورس</label>
+                                {{ form.image }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">السعر (0 = مجاني)</label>
+                                {{ form.price }}
+                            </div>
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-success btn-lg rounded-pill fw-bold shadow-sm">
+                                <i class="bi bi-save me-2"></i> حفظ الكورس
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

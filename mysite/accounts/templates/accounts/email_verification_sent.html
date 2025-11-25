@@ -1,0 +1,31 @@
+{% extends "blog/base.html" %}
+{% block title %}تحقق من بريدك الإلكتروني{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-lg rounded-4 p-5">
+                <div class="mb-4">
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 80px; height: 80px;">
+                        <i class="bi bi-envelope-check fs-1"></i>
+                    </div>
+                </div>
+                
+                <h2 class="fw-bold mb-3">تحقق من بريدك الإلكتروني</h2>
+                <p class="text-muted mb-4">
+                    تم إرسال رسالة تفعيل إلى <strong>{{ email }}</strong>
+                </p>
+                <p class="text-muted small">
+                    يرجى فتح بريدك الإلكتروني والنقر على رابط التفعيل لإكمال التسجيل.
+                </p>
+                
+                <div class="alert alert-info mt-4">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>ملاحظة:</strong> في وضع التطوير، ستجد الرسالة في Terminal/Console.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

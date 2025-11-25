@@ -1,0 +1,42 @@
+{% extends "blog/base.html" %}
+{% block title %}الأخبار{% endblock %}
+
+{% block content %}
+<div class="container py-5 fade-in">
+    <div class="text-center mb-5">
+        <h1 class="fw-bold display-5 text-primary">آخر الأخبار</h1>
+        <p class="text-muted fs-5">تابع أحدث المستجدات والإعلانات</p>
+    </div>
+
+    <div class="row g-4">
+        {% for item in news %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm hover-shadow transition-all">
+                {% if item.image %}
+                    <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.title }}" style="height: 200px; object-fit: cover;">
+                {% endif %}
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="badge bg-info text-dark">{{ item.category.name }}</span>
+                        <small class="text-muted">{{ item.created_at|date:"d M Y" }}</small>
+                    </div>
+                    <h5 class="card-title fw-bold">
+                        <a href="{% url 'post_detail' item.slug %}" class="text-decoration-none text-dark stretched-link">
+                            {{ item.title }}
+                        </a>
+                    </h5>
+                    <p class="card-text text-muted small">{{ item.content|striptags|truncatechars:100 }}</p>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="text-muted">
+                <i class="bi bi-newspaper fs-1 mb-3 d-block"></i>
+                <p class="fs-5">لا توجد أخبار حالياً.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "blog/base.html" %}
+{% block title %}الصفحة غير موجودة - 404{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center text-center">
+        <div class="col-lg-6">
+            <div class="py-5 fade-in">
+                <h1 class="display-1 fw-bold text-primary mb-4">404</h1>
+                <h2 class="fw-bold mb-3">عذراً، الصفحة غير موجودة!</h2>
+                <p class="text-muted fs-5 mb-4">الصفحة التي تبحث عنها قد تكون محذوفة أو تم نقلها إلى عنوان آخر.</p>
+                
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <a href="{% url 'post_list' %}" class="btn btn-primary rounded-pill px-4">
+                        <i class="bi bi-house-door me-2"></i>الصفحة الرئيسية
+                    </a>
+                    <a href="{% url 'course_list' %}" class="btn btn-outline-primary rounded-pill px-4">
+                        <i class="bi bi-mortarboard me-2"></i>الكورسات
+                    </a>
+                    <a href="{% url 'contact' %}" class="btn btn-outline-secondary rounded-pill px-4">
+                        <i class="bi bi-envelope me-2"></i>اتصل بنا
+                    </a>
+                </div>
+                
+                <div class="mt-5">
+                    <i class="bi bi-emoji-frown fs-1 text-muted"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

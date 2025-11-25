@@ -1,0 +1,207 @@
+{% extends "blog/base.html" %}
+{% block title %}لوحة التحكم{% endblock %}
+
+{% block content %}
+<div class="container py-5 fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="fw-bold display-5">لوحة التحكم</h1>
+            <p class="text-muted">إدارة المحتوى والمستخدمين</p>
+        </div>
+        <div class="d-flex gap-2">
+            <div class="dropdown">
+                <button class="btn btn-primary rounded-pill px-4 shadow-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-plus-lg me-2"></i> إضافة جديد
+                </button>
+                <ul class="dropdown-menu border-0 shadow-lg rounded-4 p-2">
+                    <li><a class="dropdown-item rounded-3 py-2" href="{% url 'post_create' %}"><i class="bi bi-pencil-square me-2 text-primary"></i> مقال / خبر</a></li>
+                    <li><a class="dropdown-item rounded-3 py-2" href="{% url 'course_create' %}"><i class="bi bi-mortarboard me-2 text-success"></i> كورس جديد</a></li>
+                    <li><a class="dropdown-item rounded-3 py-2" href="{% url 'lesson_create' %}"><i class="bi bi-book me-2 text-info"></i> درس جديد</a></li>
+                    <li><a class="dropdown-item rounded-3 py-2" href="{% url 'video_create' %}"><i class="bi bi-play-circle me-2 text-danger"></i> فيديو / بث</a></li>
+                </ul>
+            </div>
+            
+            <a href="{% url 'site_settings' %}" class="btn btn-light rounded-pill px-4 shadow-sm">
+                <i class="bi bi-gear me-2"></i> الإعدادات
+            </a>
+            <a href="{% url 'manage_users' %}" class="btn btn-light rounded-pill px-4 shadow-sm">
+                <i class="bi bi-people me-2"></i> الأعضاء
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 bg-primary text-white h-100 overflow-hidden position-relative">
+                <div class="card-body p-4">
+                    <div class="display-4 fw-bold mb-2">{{ posts_count }}</div>
+                    <div class="h5 opacity-75">إجمالي المقالات</div>
+                    <i class="bi bi-file-text position-absolute bottom-0 end-0 p-4" style="font-size: 5rem; opacity: 0.2;"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 bg-success text-white h-100 overflow-hidden position-relative">
+                <div class="card-body p-4">
+                    <div class="display-4 fw-bold mb-2">{{ users_count }}</div>
+                    <div class="h5 opacity-75">المستخدمين</div>
+                    <i class="bi bi-people position-absolute bottom-0 end-0 p-4" style="font-size: 5rem; opacity: 0.2;"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 bg-info text-white h-100 overflow-hidden position-relative">
+                <div class="card-body p-4">
+                    <div class="display-4 fw-bold mb-2">{{ comments_count }}</div>
+                    <div class="h5 opacity-75">التعليقات</div>
+                    <i class="bi bi-chat-dots position-absolute bottom-0 end-0 p-4" style="font-size: 5rem; opacity: 0.2;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Posts Table -->
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-5">
+        <div class="card-header bg-white border-0 p-4 d-flex justify-content-between align-items-center">
+            <h4 class="fw-bold mb-0">آخر المقالات</h4>
+            <a href="{% url 'post_list' %}" class="btn btn-sm btn-outline-primary rounded-pill">عرض الكل</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="px-4 py-3 border-0">العنوان</th>
+                        <th class="px-4 py-3 border-0">الكاتب</th>
+                        <th class="px-4 py-3 border-0">التاريخ</th>
+                        <th class="px-4 py-3 border-0 text-end">إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for post in recent_posts %}
+                    <tr>
+                        <td class="px-4 py-3 fw-bold text-dark">
+                            <a href="{% url 'post_detail' post.slug %}" class="text-decoration-none text-dark">
+                                {{ post.title|truncatechars:40 }}
+                            </a>
+                        </td>
+                        <td class="px-4 py-3 text-muted">{{ post.author.username }}</td>
+                        <td class="px-4 py-3 text-muted">{{ post.created_at|date:"Y/m/d" }}</td>
+                        <td class="px-4 py-3 text-end">
+                            <a href="{% url 'post_update' post.slug %}" class="btn btn-sm btn-light rounded-circle shadow-sm" title="تعديل">
+                                <i class="bi bi-pencil text-warning"></i>
+                            </a>
+                            <a href="{% url 'post_delete' post.slug %}" class="btn btn-sm btn-light rounded-circle shadow-sm ms-1" title="حذف">
+                                <i class="bi bi-trash text-danger"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5 text-muted">لا توجد مقالات حتى الآن.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Recent Comments Table -->
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-5">
+        <div class="card-header bg-white border-0 p-4">
+            <h4 class="fw-bold mb-0">آخر التعليقات</h4>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="px-4 py-3 border-0">المستخدم</th>
+                        <th class="px-4 py-3 border-0">التعليق</th>
+                        <th class="px-4 py-3 border-0">على مقال</th>
+                        <th class="px-4 py-3 border-0">التاريخ</th>
+                        <th class="px-4 py-3 border-0 text-end">إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for comment in recent_comments %}
+                    <tr>
+                        <td class="px-4 py-3 fw-bold text-dark">
+                            {{ comment.user.username }}
+                        </td>
+                        <td class="px-4 py-3 text-muted" style="max-width: 300px;">
+                            {{ comment.body|truncatechars:60 }}
+                        </td>
+                        <td class="px-4 py-3">
+                            <a href="{% url 'post_detail' comment.post.slug %}" class="text-decoration-none text-primary">
+                                {{ comment.post.title|truncatechars:30 }}
+                            </a>
+                        </td>
+                        <td class="px-4 py-3 text-muted">{{ comment.created_at|date:"Y/m/d" }}</td>
+                        <td class="px-4 py-3 text-end">
+                            <form method="POST" action="{% url 'comment_delete' comment.pk %}" class="d-inline" onsubmit="return confirm('هل أنت متأكد من حذف هذا التعليق؟');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-light rounded-circle shadow-sm text-danger" title="حذف">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">لا توجد تعليقات حتى الآن.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Recent Users Table -->
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-5">
+        <div class="card-header bg-white border-0 p-4">
+            <h4 class="fw-bold mb-0">آخر الأعضاء المسجلين</h4>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="px-4 py-3 border-0">المستخدم</th>
+                        <th class="px-4 py-3 border-0">البريد الإلكتروني</th>
+                        <th class="px-4 py-3 border-0">تاريخ الانضمام</th>
+                        <th class="px-4 py-3 border-0">الدور</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in recent_users %}
+                    <tr>
+                        <td class="px-4 py-3 fw-bold text-dark">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-2 fw-bold text-secondary" style="width: 35px; height: 35px;">
+                                    {{ user.username|make_list|first|upper }}
+                                </div>
+                                {{ user.username }}
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 text-muted">{{ user.email }}</td>
+                        <td class="px-4 py-3 text-muted">{{ user.date_joined|date:"Y/m/d" }}</td>
+                        <td class="px-4 py-3">
+                            {% if user.is_superuser %}
+                                <span class="badge bg-danger-subtle text-danger rounded-pill px-3">مدير النظام</span>
+                            {% elif user.is_staff %}
+                                <span class="badge bg-warning-subtle text-warning rounded-pill px-3">مشرف</span>
+                            {% else %}
+                                <span class="badge bg-primary-subtle text-primary rounded-pill px-3">عضو</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5 text-muted">لا يوجد أعضاء حتى الآن.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

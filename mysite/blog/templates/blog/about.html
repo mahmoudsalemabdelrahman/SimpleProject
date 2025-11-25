@@ -1,0 +1,54 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}عن المدونة{% endblock %}
+
+{% block content %}
+<div class="container fade-in">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-lg border-0 overflow-hidden">
+                <div class="card-body p-5 text-center">
+                    <h1 class="display-4 fw-bold mb-4 text-primary">أهلاً بك في مدونتي</h1>
+                    <p class="lead text-muted mb-5">مساحة نشارك فيها الأفكار، القصص، والمعرفة.</p>
+                    
+                    <div class="row mb-5">
+                        <div class="col-md-4 mb-4">
+                            <div class="p-4 bg-light rounded-3 h-100">
+                                <div class="display-6 text-primary mb-3">🚀</div>
+                                <h3 class="h5 fw-bold">مهمتنا</h3>
+                                <p class="small text-muted">تقديم محتوى عالي الجودة يثري المعرفة ويلهم القراء في مختلف المجالات.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-4">
+                            <div class="p-4 bg-light rounded-3 h-100">
+                                <div class="display-6 text-primary mb-3">💡</div>
+                                <h3 class="h5 fw-bold">رؤيتنا</h3>
+                                <p class="small text-muted">بناء مجتمع تفاعلي يتبادل الخبرات ويدعم التعلم المستمر.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-4">
+                            <div class="p-4 bg-light rounded-3 h-100">
+                                <div class="display-6 text-primary mb-3">❤️</div>
+                                <h3 class="h5 fw-bold">قيمنا</h3>
+                                <p class="small text-muted">المصداقية، الإبداع، واحترام جميع الآراء والأفكار.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-5">
+
+                    <div class="text-start">
+                        <h2 class="h3 fw-bold mb-3">من نحن؟</h2>
+                        <p>نحن مجموعة من الشغوفين بالتقنية، الكتابة، ومشاركة المعرفة. نؤمن بأن الكلمة لها قوة التغيير، وأن المعرفة تزداد بمشاركتها.</p>
+                        <p>في هذه المدونة، ستجد مقالات متنوعة تغطي مواضيع مختلفة، من التقنية والبرمجة إلى تطوير الذات وقصص النجاح.</p>
+                        
+                        <div class="mt-5 text-center">
+                            <a href="{% url 'contact' %}" class="btn btn-primary btn-lg px-5">تواصل معنا</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

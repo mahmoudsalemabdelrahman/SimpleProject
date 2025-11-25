@@ -1,0 +1,314 @@
+{% extends "blog/base.html" %}
+{% block title %}{{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5 fade-in">
+    <!-- Course Header -->
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-5">
+        <div class="row g-0">
+            <div class="col-md-5 bg-light d-flex align-items-center justify-content-center">
+                {% if course.image %}
+                    <img src="{{ course.image.url }}" class="img-fluid w-100 h-100" style="object-fit: cover;" alt="{{ course.title }}">
+                {% else %}
+                    <i class="bi bi-mortarboard fs-1 text-muted py-5"></i>
+                {% endif %}
+            </div>
+            <div class="col-md-7">
+                <div class="card-body p-5">
+                    <h1 class="fw-bold mb-3">{{ course.title }}</h1>
+                    <p class="lead text-muted mb-4">{{ course.description }}</p>
+                    
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <span class="badge bg-success fs-5 px-3 py-2">
+                            {% if course.price > 0 %}
+                                {{ course.price }} ج.م
+                            {% else %}
+                                مجاني
+                            {% endif %}
+                        </span>
+                        <span class="text-muted"><i class="bi bi-collection-play me-2"></i>{{ course.lessons.count }} دروس</span>
+                    </div>
+
+                    {% if is_enrolled %}
+                        <div class="alert alert-success rounded-pill px-4 d-inline-block">
+                            <i class="bi bi-check-circle-fill me-2"></i> أنت مشترك في هذا الكورس
+                        </div>
+                    {% else %}
+                        <a href="{% url 'course_enroll' course.pk %}" class="btn btn-primary btn-lg rounded-pill px-5 shadow-sm">
+                            اشترك الآن
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lessons List -->
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <h3 class="fw-bold mb-4 border-bottom pb-3">محتوى الكورس</h3>
+            
+            <div class="accordion shadow-sm rounded-3 overflow-hidden" id="lessonsAccordion">
+                {% for lesson in course.lessons.all %}
+                <div class="accordion-item border-0 border-bottom">
+                    <h2 class="accordion-header" id="heading{{ lesson.pk }}">
+                        <button class="accordion-button collapsed fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ lesson.pk }}">
+                            <div class="d-flex align-items-center w-100">
+                                {% if is_enrolled %}
+                                    <div class="form-check me-3" onclick="event.stopPropagation();">
+                                        <input class="form-check-input lesson-check" type="checkbox" data-id="{{ lesson.pk }}" {% if lesson.pk in completed_lessons %}checked{% endif %}>
+                                    </div>
+                                {% else %}
+                                    <span class="badge bg-light text-dark border me-3">{{ forloop.counter }}</span>
+                                {% endif %}
+                                {{ lesson.title }}
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="collapse{{ lesson.pk }}" class="accordion-collapse collapse" data-bs-parent="#lessonsAccordion">
+                        <div class="accordion-body bg-light p-4">
+                            {% if is_enrolled %}
+                                {% if lesson.video_url %}
+                                    <div class="ratio ratio-16x9 mb-3 rounded-3 overflow-hidden shadow-sm">
+                                        <iframe src="{{ lesson.video_url }}" allowfullscreen></iframe>
+                                    </div>
+                                {% endif %}
+                                
+                                {% if lesson.content %}
+                                    <div class="lesson-content text-muted">
+                                        {{ lesson.content|linebreaks }}
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="bi bi-lock-fill fs-1 text-muted mb-2"></i>
+                                    <p class="text-muted">يجب عليك الاشتراك في الكورس لمشاهدة المحتوى.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-4 text-muted">
+                    <p>لا توجد دروس مضافة لهذا الكورس بعد.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.lesson-check').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const lessonId = this.dataset.id;
+                fetch(`/lessons/${lessonId}/complete/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if(data.status === 'success') {
+                        console.log('Progress updated');
+                    }
+                });
+            });
+        });
+    </script>
+
+    <!-- Quizzes Section -->
+    {% if is_enrolled %}
+    <div class="row justify-content-center mt-5">
+        <div class="col-lg-10">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold"><i class="bi bi-clipboard-check text-primary me-2"></i>الاختبارات</h3>
+                <a href="{% url 'quiz_list' course.id %}" class="btn btn-outline-primary rounded-pill">
+                    <i class="bi bi-list-check me-2"></i>عرض جميع الاختبارات
+                </a>
+            </div>
+            
+            {% if course.quizzes.all %}
+                <div class="row g-3">
+                    {% for quiz in course.quizzes.all|slice:":3" %}
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm rounded-4 h-100">
+                            <div class="card-body p-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-question-circle fs-4 text-primary me-2"></i>
+                                    <h6 class="fw-bold mb-0">{{ quiz.title }}</h6>
+                                </div>
+                                <small class="text-muted d-block mb-2">
+                                    {{ quiz.questions.count }} سؤال • {{ quiz.pass_percentage }}% للنجاح
+                                </small>
+                                <a href="{% url 'quiz_detail' quiz.id %}" class="btn btn-sm btn-primary rounded-pill w-100">
+                                    <i class="bi bi-play-fill me-1"></i>بدء الاختبار
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info rounded-4">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    لا توجد اختبارات متاحة لهذا الكورس حالياً.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Certificate Section -->
+    <div class="row justify-content-center mt-5">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden" style="background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);">
+                <div class="card-body p-5 text-white text-center">
+                    <i class="bi bi-award-fill" style="font-size: 4rem;"></i>
+                    <h3 class="fw-bold mt-3 mb-2">احصل على شهادة إتمام</h3>
+                    <p class="mb-4">أكمل جميع الدروس للحصول على شهادة معتمدة</p>
+                    
+                    {% if completed_lessons|length == course.lessons.count and course.lessons.count > 0 %}
+                        <button onclick="generateCertificate({{ course.id }})" class="btn btn-light btn-lg rounded-pill px-5">
+                            <i class="bi bi-download me-2"></i>إنشاء الشهادة
+                        </button>
+                        <div id="certificate-message" class="mt-3"></div>
+                    {% else %}
+                        <div class="progress mb-3" style="height: 25px;">
+                            {% widthratio completed_lessons|length course.lessons.count 100 as progress %}
+                            <div class="progress-bar bg-success" style="width: {{ progress }}%">
+                                {{ progress }}%
+                            </div>
+                        </div>
+                        <p class="mb-0">أكملت {{ completed_lessons|length }} من {{ course.lessons.count }} دروس</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <script>
+    // Certificate generation
+    function generateCertificate(courseId) {
+        fetch(`/certificates/generate/${courseId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const messageDiv = document.getElementById('certificate-message');
+            if (data.status === 'success' || data.status === 'exists') {
+                messageDiv.innerHTML = `
+                    <div class="alert alert-light rounded-pill d-inline-block">
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>
+                        ${data.message}
+                        <a href="/certificates/download/${data.certificate_id}/" class="btn btn-sm btn-success rounded-pill ms-2">
+                            <i class="bi bi-download"></i> تحميل
+                        </a>
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="alert alert-danger rounded-pill d-inline-block">
+                        ${data.error}
+                    </div>
+                `;
+            }
+        });
+    }
+    </script>
+
+    <!-- Social Sharing -->
+    <div class="row justify-content-center mt-5">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-light">
+                <h5 class="fw-bold mb-3"><i class="bi bi-share me-2"></i>شارك هذا الكورس</h5>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" class="btn btn-primary rounded-pill">
+                        <i class="bi bi-facebook me-2"></i>Facebook
+                    </a>
+                    <a href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri }}&text={{ course.title }}" target="_blank" class="btn btn-info text-white rounded-pill">
+                        <i class="bi bi-twitter-x me-2"></i>Twitter
+                    </a>
+                    <a href="https://wa.me/?text={{ course.title }} {{ request.build_absolute_uri }}" target="_blank" class="btn btn-success rounded-pill">
+                        <i class="bi bi-whatsapp me-2"></i>WhatsApp
+                    </a>
+                    <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.build_absolute_uri }}" target="_blank" class="btn btn-primary rounded-pill">
+                        <i class="bi bi-linkedin me-2"></i>LinkedIn
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviews Section -->
+    {% if is_enrolled %}
+    <div class="row justify-content-center mt-5">
+        <div class="col-lg-10">
+            <h3 class="fw-bold mb-4"><i class="bi bi-star-fill text-warning me-2"></i>التقييمات والمراجعات</h3>
+            
+            <!-- Add Review Form -->
+            {% if review_form and not user_review %}
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-light">
+                <h5 class="fw-bold mb-3">أضف تقييمك</h5>
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">التقييم</label>
+                            {{ review_form.rating }}
+                        </div>
+                        <div class="col-md-9">
+                            <label class="form-label fw-bold">تعليقك</label>
+                            {{ review_form.comment }}
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary rounded-pill mt-3 px-4">
+                        <i class="bi bi-send me-2"></i>إرسال التقييم
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+
+            <!-- Reviews List -->
+            <div class="reviews-list">
+                {% for review in reviews %}
+                <div class="card border-0 shadow-sm rounded-4 p-4 mb-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px; font-weight: bold;">
+                                {{ review.user.username|make_list|first|upper }}
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0">{{ review.user.username }}</h6>
+                                <small class="text-muted">{{ review.created_at|timesince }} مضت</small>
+                            </div>
+                        </div>
+                        <div class="text-warning">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= review.rating %}
+                                    <i class="bi bi-star-fill"></i>
+                                {% else %}
+                                    <i class="bi bi-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <p class="text-dark mb-0">{{ review.comment }}</p>
+                </div>
+                {% empty %}
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-chat-square-text fs-1 mb-2 d-block"></i>
+                    <p>لا توجد تقييمات بعد. كن أول من يقيّم هذا الكورس!</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

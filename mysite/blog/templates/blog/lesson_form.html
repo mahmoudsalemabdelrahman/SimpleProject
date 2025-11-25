@@ -1,0 +1,59 @@
+{% extends "blog/base.html" %}
+{% block title %}إضافة درس جديد{% endblock %}
+
+{% block content %}
+<div class="container py-5 fade-in">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-header bg-white border-0 p-4">
+                    <h2 class="fw-bold text-info mb-0"><i class="bi bi-book me-2"></i>إضافة درس جديد</h2>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <strong>تنبيه:</strong> يرجى تصحيح الأخطاء أدناه.
+                                {{ form.errors }}
+                            </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">الكورس التابع له</label>
+                            {{ form.course }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">عنوان الدرس</label>
+                            {{ form.title }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">رابط الفيديو (YouTube/Vimeo)</label>
+                            {{ form.video_url }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">محتوى نصي (اختياري)</label>
+                            {{ form.content }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">ترتيب الدرس</label>
+                            {{ form.order }}
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-info btn-lg rounded-pill fw-bold shadow-sm text-white">
+                                <i class="bi bi-save me-2"></i> حفظ الدرس
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

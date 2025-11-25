@@ -1,0 +1,50 @@
+{% extends "blog/base.html" %}
+{% block title %}تسجيل الدخول{% endblock %}
+
+{% block content %}
+<div class="container py-5 fade-in">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 60px; height: 60px;">
+                            <i class="bi bi-person-fill fs-2"></i>
+                        </div>
+                        <h2 class="fw-bold">مرحباً بعودتك</h2>
+                        <p class="text-muted">سجل دخولك للمتابعة</p>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                            <div class="alert alert-danger rounded-3 small">
+                                اسم المستخدم أو كلمة المرور غير صحيحة.
+                            </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">اسم المستخدم</label>
+                            <input type="text" name="username" class="form-control form-control-lg rounded-3" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">كلمة المرور</label>
+                            <input type="password" name="password" class="form-control form-control-lg rounded-3" required>
+                        </div>
+
+                        <div class="d-grid mb-4">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">تسجيل الدخول</button>
+                        </div>
+
+                        <div class="text-center">
+                            <p class="text-muted mb-0">ليس لديك حساب؟ <a href="{% url 'register' %}" class="text-primary fw-bold text-decoration-none">اشترك الآن</a></p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

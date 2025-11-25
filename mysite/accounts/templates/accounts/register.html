@@ -1,0 +1,53 @@
+{% extends "blog/base.html" %}
+{% block title %}إنشاء حساب جديد{% endblock %}
+
+{% block content %}
+<div class="container py-5 fade-in">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 60px; height: 60px;">
+                            <i class="bi bi-person-plus-fill fs-2"></i>
+                        </div>
+                        <h2 class="fw-bold">إنشاء حساب</h2>
+                        <p class="text-muted">انضم إلينا وشاركنا أفكارك</p>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% for field in form %}
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.help_text %}
+                                    <div class="form-text small text-muted">{{ field.help_text }}</div>
+                                {% endif %}
+                                {% for error in field.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+
+                        <div class="d-grid mb-4 mt-4">
+                            <button type="submit" class="btn btn-success btn-lg rounded-pill fw-bold shadow-sm">إنشاء الحساب</button>
+                        </div>
+
+                        <div class="text-center">
+                            <p class="text-muted mb-0">لديك حساب بالفعل؟ <a href="{% url 'login' %}" class="text-primary fw-bold text-decoration-none">سجل دخولك</a></p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    input.form-control { border-radius: 0.5rem; padding: 0.75rem 1rem; }
+    input.form-control:focus { box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1); border-color: #10b981; }
+    ul { list-style: none; padding: 0; margin: 0; }
+</style>
+{% endblock %}

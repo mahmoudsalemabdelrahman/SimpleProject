@@ -1,0 +1,98 @@
+{% extends "blog/base.html" %}
+{% block title %}اختبارات {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="fw-bold"><i class="bi bi-clipboard-check text-primary me-2"></i>الاختبارات</h1>
+                    <p class="text-muted">{{ course.title }}</p>
+                </div>
+                <a href="{% url 'course_detail' course.id %}" class="btn btn-outline-primary rounded-pill">
+                    <i class="bi bi-arrow-right me-2"></i>العودة للكورس
+                </a>
+            </div>
+
+            {% if quiz_data %}
+                <div class="row g-4">
+                    {% for data in quiz_data %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card border-0 shadow-sm rounded-4 h-100">
+                            <div class="card-body p-4">
+                                <!-- Quiz Type Badge -->
+                                <div class="mb-3">
+                                    {% if data.quiz.quiz_type == 'course' %}
+                                        <span class="badge bg-danger rounded-pill">امتحان نهائي</span>
+                                    {% else %}
+                                        <span class="badge bg-primary rounded-pill">اختبار درس</span>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Quiz Title -->
+                                <h5 class="card-title fw-bold mb-3">{{ data.quiz.title }}</h5>
+                                
+                                <!-- Quiz Info -->
+                                <div class="text-muted small mb-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi bi-question-circle me-2"></i>
+                                        <span>{{ data.quiz.questions.count }} سؤال</span>
+                                    </div>
+                                    {% if data.quiz.time_limit %}
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi bi-clock me-2"></i>
+                                        <span>{{ data.quiz.time_limit }} دقيقة</span>
+                                    </div>
+                                    {% endif %}
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi bi-trophy me-2"></i>
+                                        <span>نسبة النجاح: {{ data.quiz.pass_percentage }}%</span>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-arrow-repeat me-2"></i>
+                                        <span>المحاولات المتبقية: {{ data.attempts_left }}/{{ data.quiz.max_attempts }}</span>
+                                    </div>
+                                </div>
+
+                                <!-- Best Score -->
+                                {% if data.best_score %}
+                                <div class="alert {% if data.passed %}alert-success{% else %}alert-warning{% endif %} rounded-3 py-2 mb-3">
+                                    <small>
+                                        <i class="bi bi-star-fill me-1"></i>
+                                        أفضل نتيجة: <strong>{{ data.best_score|floatformat:1 }}%</strong>
+                                        {% if data.passed %}
+                                            <i class="bi bi-check-circle-fill ms-2"></i>
+                                        {% endif %}
+                                    </small>
+                                </div>
+                                {% endif %}
+
+                                <!-- Action Button -->
+                                {% if data.attempts_left > 0 %}
+                                    <a href="{% url 'quiz_detail' data.quiz.id %}" class="btn btn-primary w-100 rounded-pill">
+                                        <i class="bi bi-play-fill me-2"></i>
+                                        {% if data.attempts_count > 0 %}إعادة المحاولة{% else %}بدء الاختبار{% endif %}
+                                    </a>
+                                {% else %}
+                                    <button class="btn btn-secondary w-100 rounded-pill" disabled>
+                                        <i class="bi bi-x-circle me-2"></i>انتهت المحاولات
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-clipboard-x text-muted" style="font-size: 5rem;"></i>
+                    <h3 class="mt-4 text-muted">لا توجد اختبارات متاحة</h3>
+                    <p class="text-muted">لم يتم إضافة اختبارات لهذا الكورس بعد</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
