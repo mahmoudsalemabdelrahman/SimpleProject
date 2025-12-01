@@ -58,7 +58,7 @@ def notify_certificate_issued(sender, instance, created, **kwargs):
 @receiver(post_save, sender=QuizAttempt)
 def notify_quiz_result(sender, instance, created, **kwargs):
     """Notify user about quiz results"""
-    if not created and instance.is_completed:
+    if not created and instance.is_completed and instance.percentage is not None:
         # Quiz was just completed
         status = 'ناجح' if instance.passed else 'راسب'
         Notification.objects.create(

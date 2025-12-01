@@ -154,7 +154,12 @@ def post_detail(request, slug):
 @user_passes_test(staff_check)
 def post_create(request):
     if request.method == "POST":
-        form = PostForm(request.POST, request.FILES)
+        # ضبط القيمة الافتراضية لـ post_type إذا لم يتم إرسالها
+        post_data = request.POST.copy()
+        if not post_data.get('post_type'):
+            post_data['post_type'] = 'article'
+        
+        form = PostForm(post_data, request.FILES)
         category_form = CategoryForm(request.POST)
         if form.is_valid():
             post = form.save(commit=False)
@@ -187,7 +192,12 @@ def post_update(request, slug):
         return redirect('post_detail', slug=slug)
 
     if request.method == "POST":
-        form = PostForm(request.POST, instance=post)
+        # ضبط القيمة الافتراضية لـ post_type إذا لم يتم إرسالها
+        post_data = request.POST.copy()
+        if not post_data.get('post_type'):
+            post_data['post_type'] = post.post_type or 'article'
+        
+        form = PostForm(post_data, request.FILES, instance=post)
         if form.is_valid():
             form.save()
             return redirect('post_detail', slug=post.slug)
