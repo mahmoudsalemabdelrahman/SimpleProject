@@ -1,9 +1,22 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.http import JsonResponse, HttpResponse, FileResponse
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.paginator import Paginator
-from django.db.models import Q
-from .models import Post, Category, Comment, Tag, SiteSetting
-from .forms import PostForm, CommentForm , CategoryForm, ContactForm, SiteSettingForm
+from django.db.models import Q, Count
+from django.utils import timezone
+from django.urls import reverse
+import random
+from .models import (
+    Post, Category, Comment, Tag, SiteSetting,
+    Course, Lesson, Enrollment, LessonProgress, Order,
+    Certificate, Quiz, Question, Answer, QuizAttempt, UserAnswer,
+    Video, Notification
+)
+from .forms import (
+    PostForm, CommentForm, CategoryForm, ContactForm, SiteSettingForm,
+    CourseForm, LessonForm, VideoForm, ReviewForm, SubscriberForm
+)
+from .certificate_generator import generate_certificate_pdf
 
 
 
@@ -146,6 +159,9 @@ def post_create(request):
         if form.is_valid():
             post = form.save(commit=False)
             post.author = request.user
+            # التأكد من وجود post_type، وإلا استخدم القيمة الافتراضية
+            if not post.post_type:
+                post.post_type = 'article'
             post.save()
             return redirect('post_list')
     else:
@@ -281,8 +297,6 @@ def contact(request):
 
 def robots_txt(request):
     """Simple robots.txt serving view."""
-    from django.http import HttpResponse
-    from django.urls import reverse
     lines = [
         "User-agent: *",
         "Disallow: /admin/",
@@ -511,7 +525,7 @@ def payment_success(request, order_id):
 @login_required
 def mark_lesson_complete(request, pk):
     from .models import Lesson, LessonProgress
-    from django.http import JsonResponse
+
     if request.method == "POST":
         lesson = get_object_or_404(Lesson, pk=pk)
         progress, created = LessonProgress.objects.get_or_create(user=request.user, lesson=lesson)
@@ -600,7 +614,7 @@ def student_dashboard(request):
 
 def subscribe_newsletter(request):
     from .forms import SubscriberForm
-    from django.http import JsonResponse
+
     if request.method == "POST":
         form = SubscriberForm(request.POST)
         if form.is_valid():
@@ -615,9 +629,6 @@ def privacy_policy(request):
 
 
 def sitemap(request):
-    from django.http import HttpResponse
-    from django.urls import reverse
-    
     # Generate XML sitemap
     xml_content = '''<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -660,7 +671,7 @@ def sitemap(request):
 @login_required
 def toggle_bookmark(request, content_type, pk):
     from .models import Bookmark
-    from django.http import JsonResponse
+
     
     if content_type == 'post':
         post = get_object_or_404(Post, pk=pk)
@@ -692,15 +703,9 @@ def custom_404(request, exception):
 
 
 # ============= Certificate Views =============
-from django.http import FileResponse
-from .models import Certificate, Quiz, Question, Answer, QuizAttempt, UserAnswer
-from .certificate_generator import generate_certificate_pdf
-
-
 @login_required
 def generate_certificate(request, course_id):
     """Generate certificate for completed course"""
-    from .models import Course, Enrollment, LessonProgress
     
     course = get_object_or_404(Course, pk=course_id)
     
@@ -772,11 +777,6 @@ def my_certificates(request):
 
 
 # ============= Quiz Views =============
-from django.utils import timezone
-from django.db.models import Count, Q
-import random
-
-
 @login_required
 def quiz_list(request, course_id):
     """List all quizzes for a course"""
@@ -885,10 +885,9 @@ def submit_quiz(request, attempt_id):
     if attempt.is_completed:
         return JsonResponse({'error': 'الاختبار مكتمل بالفعل'}, status=400)
     
-    # Mark as completed
+    # Mark end time and completion status
     attempt.end_time = timezone.now()
     attempt.is_completed = True
-    attempt.save()
     
     # Process answers
     for question in attempt.quiz.questions.all():
@@ -920,7 +919,7 @@ def submit_quiz(request, attempt_id):
                 text_answer=text_answer
             )
     
-    # Calculate score
+    # Calculate score (this will save the attempt with all data)
     percentage = attempt.calculate_score()
     
     return JsonResponse({
@@ -970,9 +969,6 @@ def quiz_review(request, attempt_id):
 
 
 # ============= Notifications Views =============
-from .models import Notification
-
-
 @login_required
 def notifications_list(request):
     """List all notifications for current user"""

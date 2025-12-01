@@ -14,6 +14,16 @@ class PostForm(forms.ModelForm):
             'image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
             'video': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # التأكد من أن choices معرّفة بشكل صحيح
+        self.fields['post_type'].choices = Post.POST_TYPE_CHOICES
+        # تعيين القيمة الافتراضية إذا كان النموذج جديداً
+        if not self.instance.pk:
+            self.fields['post_type'].initial = 'article'
+            # جعل الحقل غير مطلوب لأنه له قيمة افتراضية
+            self.fields['post_type'].required = False
 
 class CategoryForm(forms.ModelForm):
     class Meta:

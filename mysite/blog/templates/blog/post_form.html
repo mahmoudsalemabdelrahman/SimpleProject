@@ -1,121 +1,177 @@
-{% extends "blog/base.html" %}
-{% block title %}إضافة / تعديل مقال{% endblock %}
-
+{% extends "blog/base.html" %} {% block title %}إضافة / تعديل مقال{% endblock %}
 {% block extra_head %}
 <!-- CKEditor 5 -->
 <!-- CKEditor 4 Full -->
 <script src="https://cdn.ckeditor.com/4.22.1/full/ckeditor.js"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        CKEDITOR.replace('id_content', {
-            language: 'ar',
-            height: 400,
-            contentsLangDirection: 'rtl',
-            extraPlugins: 'colorbutton,panelbutton,font',
-            toolbarGroups: [
-                { name: 'clipboard', groups: [ 'clipboard', 'undo' ] },
-                { name: 'editing', groups: [ 'find', 'selection', 'spellchecker' ] },
-                { name: 'links' },
-                { name: 'insert' },
-                { name: 'forms' },
-                { name: 'tools' },
-                { name: 'document', groups: [ 'mode', 'document', 'doctools' ] },
-                { name: 'others' },
-                '/',
-                { name: 'basicstyles', groups: [ 'basicstyles', 'cleanup' ] },
-                { name: 'paragraph', groups: [ 'list', 'indent', 'blocks', 'align', 'bidi' ] },
-                { name: 'styles' },
-                { name: 'colors' },
-                { name: 'about' }
-            ],
-            removeButtons: 'Save,NewPage,Preview,Print,Templates,Scayt,Form,Checkbox,Radio,TextField,Textarea,Select,Button,ImageButton,HiddenField,Flash,Iframe'
-        });
+  document.addEventListener("DOMContentLoaded", function () {
+    CKEDITOR.replace("id_content", {
+      language: "ar",
+      height: 400,
+      contentsLangDirection: "rtl",
+      extraPlugins: "colorbutton,panelbutton,font",
+      toolbarGroups: [
+        { name: "clipboard", groups: ["clipboard", "undo"] },
+        { name: "editing", groups: ["find", "selection", "spellchecker"] },
+        { name: "links" },
+        { name: "insert" },
+        { name: "forms" },
+        { name: "tools" },
+        { name: "document", groups: ["mode", "document", "doctools"] },
+        { name: "others" },
+        "/",
+        { name: "basicstyles", groups: ["basicstyles", "cleanup"] },
+        {
+          name: "paragraph",
+          groups: ["list", "indent", "blocks", "align", "bidi"],
+        },
+        { name: "styles" },
+        { name: "colors" },
+        { name: "about" },
+      ],
+      removeButtons:
+        "Save,NewPage,Preview,Print,Templates,Scayt,Form,Checkbox,Radio,TextField,Textarea,Select,Button,ImageButton,HiddenField,Flash,Iframe",
     });
+  });
 </script>
-{% endblock %}
-
-{% block content %}
+{% endblock %} {% block content %}
 <div class="container py-5 fade-in">
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
-                <div class="card-header bg-white border-0 p-4">
-                    <h2 class="fw-bold text-primary mb-0"><i class="bi bi-pencil-square me-2"></i>إضافة / تعديل مقال</h2>
-                </div>
-                <div class="card-body p-4">
-                    <form method="POST" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        
-                        {% if form.errors %}
-                            <div class="alert alert-danger">
-                                <strong>تنبيه:</strong> يرجى تصحيح الأخطاء أدناه.
-                                {{ form.errors }}
-                            </div>
-                        {% endif %}
-
-                        <div class="row g-4">
-                            <div class="col-12">
-                                <label class="form-label fw-bold">عنوان المقال</label>
-                                {{ form.title }}
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">القسم (Category)</label>
-                                <div class="input-group">
-                                    {{ form.category }}
-                                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
-                                        <i class="bi bi-plus-lg"></i> جديد
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">صورة المقال</label>
-                                {{ form.image }}
-                            </div>
-
-                            <div class="col-12">
-                                <label class="form-label fw-bold">محتوى المقال</label>
-                                {{ form.content }}
-                            </div>
-                            
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">فيديو (اختياري)</label>
-                                {{ form.video }}
-                            </div>
-                        </div>
-
-                        <div class="d-grid mt-5">
-                            <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
-                                <i class="bi bi-save me-2"></i> حفظ المقال
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+        <div class="card-header bg-white border-0 p-4">
+          <h2 class="fw-bold text-primary mb-0">
+            <i class="bi bi-pencil-square me-2"></i>إضافة / تعديل مقال
+          </h2>
         </div>
+        <div class="card-body p-4">
+          <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %} {% if form.errors %}
+            <div class="alert alert-danger">
+              <strong>تنبيه:</strong> يرجى تصحيح الأخطاء أدناه. {{ form.errors
+              }}
+            </div>
+            {% endif %}
+
+            <div class="row g-4">
+              <div class="col-12">
+                <label class="form-label fw-bold">عنوان المقال</label>
+                {{ form.title }}
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label fw-bold">القسم (Category)</label>
+                <div class="input-group">
+                  {{ form.category }}
+                  <button
+                    type="button"
+                    class="btn btn-outline-primary"
+                    data-bs-toggle="modal"
+                    data-bs-target="#addCategoryModal"
+                  >
+                    <i class="bi bi-plus-lg"></i> جديد
+                  </button>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label fw-bold">نوع المحتوى</label>
+                {{ form.post_type }}
+                <small class="text-muted d-block mt-1"
+                  >اختر نوع المحتوى: مقال أو خبر</small
+                >
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label fw-bold">صورة المقال</label>
+                {{ form.image }}
+              </div>
+
+              <div class="col-12">
+                <label class="form-label fw-bold">محتوى المقال</label>
+                {{ form.content }}
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label fw-bold">فيديو (اختياري)</label>
+                {{ form.video }}
+              </div>
+            </div>
+
+            <div class="d-grid mt-5">
+              <button
+                type="submit"
+                class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm"
+              >
+                <i class="bi bi-save me-2"></i> حفظ المقال
+              </button>
+            </div>
+          </form>
+
+          <script>
+            // تعيين القيمة الافتراضية لـ post_type إذا لم يتم اختيارها
+            document.addEventListener("DOMContentLoaded", function () {
+              const form = document.querySelector("form");
+              const postTypeField = document.getElementById("id_post_type");
+
+              if (postTypeField && !postTypeField.value) {
+                postTypeField.value = "article";
+              }
+
+              // التأكد من وجود قيمة قبل الإرسال
+              form.addEventListener("submit", function (e) {
+                if (!postTypeField.value) {
+                  postTypeField.value = "article";
+                }
+              });
+            });
+          </script>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 
 <!-- Modal لإضافة Category -->
-<div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
+<div
+  class="modal fade"
+  id="addCategoryModal"
+  tabindex="-1"
+  aria-labelledby="addCategoryModalLabel"
+  aria-hidden="true"
+>
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content rounded-4 border-0 shadow">
       <form method="POST" action="{% url 'category_create' %}">
         {% csrf_token %}
         <div class="modal-header border-0">
-          <h5 class="modal-title fw-bold" id="addCategoryModalLabel">إضافة قسم جديد</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <h5 class="modal-title fw-bold" id="addCategoryModalLabel">
+            إضافة قسم جديد
+          </h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
         </div>
         <div class="modal-body">
-            <div class="mb-3">
-                <label class="form-label fw-bold">اسم القسم</label>
-                {{ category_form.name }}
-            </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">اسم القسم</label>
+            {{ category_form.name }}
+          </div>
         </div>
         <div class="modal-footer border-0">
-          <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">إلغاء</button>
-          <button type="submit" class="btn btn-primary rounded-pill px-4">حفظ</button>
+          <button
+            type="button"
+            class="btn btn-secondary rounded-pill"
+            data-bs-dismiss="modal"
+          >
+            إلغاء
+          </button>
+          <button type="submit" class="btn btn-primary rounded-pill px-4">
+            حفظ
+          </button>
         </div>
       </form>
     </div>
