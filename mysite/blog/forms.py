@@ -5,7 +5,7 @@ from .models import Post, Category, Comment, ContactMessage, SiteSetting
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ['title', 'content', 'category', 'post_type', 'image', 'video']
+        fields = ['title', 'content', 'category', 'post_type', 'image', 'video', 'slug']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'عنوان البوست'}),
             'content': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'محتوى البوست', 'rows': 5}),
@@ -21,6 +21,9 @@ class PostForm(forms.ModelForm):
         self.fields['post_type'].required = False
         if not self.instance.pk:
             self.fields['post_type'].initial = 'article'
+        
+        # جعل slug غير مطلوب (لأنه يتم توليده تلقائياً)
+        self.fields['slug'].required = False
 
 
 
