@@ -161,13 +161,17 @@ def post_create(request):
             # التأكد من وجود post_type، وإلا استخدم القيمة الافتراضية
             if not post.post_type:
                 post.post_type = 'article'
+            # التأكد من نشر المقال
+            post.published = True
             post.save()
+            form.save_m2m()  # حفظ الـ tags والعلاقات الأخرى
             return redirect('post_list')
     else:
         form = PostForm()
     
     category_form = CategoryForm()
     return render(request, 'blog/post_form.html', {'form': form, 'category_form': category_form})
+
 
 
 @login_required
