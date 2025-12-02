@@ -5,6 +5,7 @@ from .models import Post, Category, Comment, ContactMessage, SiteSetting
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
+        # إضافة slug ضرورية عشان Admin Panel يشتغل
         fields = ['title', 'content', 'category', 'post_type', 'image', 'video', 'slug']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'عنوان البوست'}),
