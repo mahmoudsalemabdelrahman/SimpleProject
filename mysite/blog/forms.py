@@ -17,13 +17,16 @@ class PostForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # التأكد من أن choices معرّفة بشكل صحيح
-        self.fields['post_type'].choices = Post.POST_TYPE_CHOICES
-        # جعل الحقل غير مطلوب دائماً لأنه له قيمة افتراضية في الـ model
+        # جعل الحقل غير مطلوب لأنه له قيمة افتراضية
         self.fields['post_type'].required = False
-        # تعيين القيمة الافتراضية إذا لم تكن موجودة
-        if not self.instance.pk and not self.fields['post_type'].initial:
+        
+        # تعيين القيمة الافتراضية بشكل صحيح
+        if not self.instance.pk:  # فقط للمنشورات الجديدة
             self.fields['post_type'].initial = 'article'
+        
+        # إضافة empty_label لتجنب الخيار الفارغ
+        self.fields['post_type'].empty_label = None
+
 
 class CategoryForm(forms.ModelForm):
     class Meta:

@@ -154,13 +154,7 @@ def post_detail(request, slug):
 @user_passes_test(staff_check)
 def post_create(request):
     if request.method == "POST":
-        # ضبط القيمة الافتراضية لـ post_type إذا لم يتم إرسالها
-        post_data = request.POST.copy()
-        if not post_data.get('post_type'):
-            post_data['post_type'] = 'article'
-        
-        form = PostForm(post_data, request.FILES)
-        category_form = CategoryForm(request.POST)
+        form = PostForm(request.POST, request.FILES)
         if form.is_valid():
             post = form.save(commit=False)
             post.author = request.user
@@ -171,8 +165,10 @@ def post_create(request):
             return redirect('post_list')
     else:
         form = PostForm()
-        category_form = CategoryForm()
+    
+    category_form = CategoryForm()
     return render(request, 'blog/post_form.html', {'form': form, 'category_form': category_form})
+
 
 @login_required
 def category_create(request):
@@ -192,18 +188,18 @@ def post_update(request, slug):
         return redirect('post_detail', slug=slug)
 
     if request.method == "POST":
-        # ضبط القيمة الافتراضية لـ post_type إذا لم يتم إرسالها
-        post_data = request.POST.copy()
-        if not post_data.get('post_type'):
-            post_data['post_type'] = post.post_type or 'article'
-        
-        form = PostForm(post_data, request.FILES, instance=post)
+        form = PostForm(request.POST, request.FILES, instance=post)
         if form.is_valid():
-            form.save()
+            post = form.save(commit=False)
+            # التأكد من وجود post_type
+            if not post.post_type:
+                post.post_type = 'article'
+            post.save()
             return redirect('post_detail', slug=post.slug)
     else:
         form = PostForm(instance=post)
     return render(request, 'blog/post_form.html', {'form': form})
+
 
 
 @login_required
