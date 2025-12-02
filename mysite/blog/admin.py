@@ -25,7 +25,7 @@ class PostAdmin(admin.ModelAdmin):
     list_display = ('title', 'author', 'category', 'post_type', 'published', 'created_at', 'views_count')
     list_filter = ('published', 'created_at', 'category', 'post_type', 'author')
     search_fields = ('title', 'content', 'author__username')
-    prepopulated_fields = {'slug': ('title',)}
+    # prepopulated_fields removed because slug is AutoSlugField (non-editable)
     date_hierarchy = 'created_at'
     raw_id_fields = ('author',)
     list_editable = ('published', 'category')
