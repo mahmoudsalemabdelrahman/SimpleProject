@@ -981,17 +981,22 @@ def quiz_review(request, attempt_id):
 @login_required
 def notifications_list(request):
     """List all notifications for current user"""
-    # Get latest 50 notifications
-    notifications_qs = Notification.objects.filter(user=request.user)
-    # Force evaluation to get the list
-    notifications = list(notifications_qs[:50])
+    # Defensive approach: Fetch IDs first to avoid slicing issues with update
+    # This ensures we are working with a concrete list of IDs
+    notification_ids = list(Notification.objects.filter(user=request.user)
+                          .order_by('-created_at')
+                          .values_list('id', flat=True)[:50])
     
-    # Get IDs of unread notifications in this batch to mark them as read
+    # Fetch actual objects
+    notifications = Notification.objects.filter(id__in=notification_ids).order_by('-created_at')
+    
+    # Mark unread as read
     unread_ids = [n.id for n in notifications if not n.is_read]
     
     if unread_ids:
+        # Update in DB
         Notification.objects.filter(id__in=unread_ids).update(is_read=True)
-        # Update local instances to reflect change in template
+        # Update local instances
         for n in notifications:
             if n.id in unread_ids:
                 n.is_read = True
