@@ -982,10 +982,20 @@ def quiz_review(request, attempt_id):
 @login_required
 def notifications_list(request):
     """List all notifications for current user"""
-    notifications = Notification.objects.filter(user=request.user)[:50]
+    # Get latest 50 notifications
+    notifications_qs = Notification.objects.filter(user=request.user)
+    # Force evaluation to get the list
+    notifications = list(notifications_qs[:50])
     
-    # Mark as read when viewed
-    notifications.filter(is_read=False).update(is_read=True)
+    # Get IDs of unread notifications in this batch to mark them as read
+    unread_ids = [n.id for n in notifications if not n.is_read]
+    
+    if unread_ids:
+        Notification.objects.filter(id__in=unread_ids).update(is_read=True)
+        # Update local instances to reflect change in template
+        for n in notifications:
+            if n.id in unread_ids:
+                n.is_read = True
     
     return render(request, 'blog/notifications.html', {'notifications': notifications})
 

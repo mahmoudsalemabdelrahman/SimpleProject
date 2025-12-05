@@ -3,24 +3,33 @@ from .models import Post, Category, Comment, ContactMessage, SiteSetting
 
 
 class PostForm(forms.ModelForm):
+    # تعريف الحقل بشكل صريح مع القيمة الافتراضية
+    post_type = forms.ChoiceField(
+        choices=Post.POST_TYPE_CHOICES,
+        initial='article',
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+
     class Meta:
         model = Post
-        fields = ['title', 'content', 'category', 'post_type', 'image', 'video']
+        fields = ['title', 'content', 'category', 'tags', 'post_type', 'image', 'video']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'عنوان البوست'}),
             'content': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'محتوى البوست', 'rows': 5}),
             'category': forms.Select(attrs={'class': 'form-select'}),
-            'post_type': forms.Select(attrs={'class': 'form-select'}),
+            'tags': forms.SelectMultiple(attrs={'class': 'form-select', 'style': 'height: 100px;'}),
+            # لاحظ: أزلنا post_type من هنا لأننا عرّفناه أعلاه
             'image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
             'video': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }
     
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # جعل post_type غير مطلوب وتعيين القيمة الافتراضية
-        self.fields['post_type'].required = False
-        if not self.instance.pk:
-            self.fields['post_type'].initial = 'article'
+    def clean_post_type(self):
+        """التأكد من وجود قيمة لـ post_type"""
+        post_type = self.cleaned_data.get('post_type')
+        if not post_type:
+            return 'article'  # القيمة الافتراضية
+        return post_type
 
 
 
