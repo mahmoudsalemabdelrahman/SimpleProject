@@ -161,8 +161,7 @@ def post_create(request):
             # التأكد من وجود post_type، وإلا استخدم القيمة الافتراضية
             if not post.post_type:
                 post.post_type = 'article'
-            # التأكد من نشر المقال
-            post.published = True
+            
             post.save()
             form.save_m2m()  # حفظ الـ tags والعلاقات الأخرى
             return redirect('post_list')

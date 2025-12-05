@@ -13,7 +13,7 @@ class PostForm(forms.ModelForm):
 
     class Meta:
         model = Post
-        fields = ['title', 'content', 'category', 'tags', 'post_type', 'image', 'video']
+        fields = ['title', 'content', 'category', 'tags', 'post_type', 'image', 'video', 'published']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'عنوان البوست'}),
             'content': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'محتوى البوست', 'rows': 5}),
@@ -22,6 +22,7 @@ class PostForm(forms.ModelForm):
             # لاحظ: أزلنا post_type من هنا لأننا عرّفناه أعلاه
             'image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
             'video': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'published': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
     
     def clean_post_type(self):

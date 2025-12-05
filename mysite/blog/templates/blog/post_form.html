@@ -75,6 +75,12 @@
               </div>
 
               <div class="col-md-6">
+                <label class="form-label fw-bold">الوسوم (Tags)</label>
+                {{ form.tags }}
+                <small class="text-muted">اضغط Ctrl (أو Command) لتحديد أكثر من وسم</small>
+              </div>
+
+              <div class="col-md-6">
                 <label class="form-label fw-bold">نوع المحتوى</label>
                 {{ form.post_type }}
                 <small class="text-muted d-block mt-1"
@@ -95,6 +101,14 @@
               <div class="col-md-6">
                 <label class="form-label fw-bold">فيديو (اختياري)</label>
                 {{ form.video }}
+              </div>
+
+              <div class="col-12">
+                <div class="form-check form-switch">
+                  {{ form.published }}
+                  <label class="form-check-label fw-bold" for="{{ form.published.id_for_label }}">نشر المقال الآن؟</label>
+                  <small class="text-muted d-block">إذا لم تقم بالتفعيل، سيتم حفظ المقال كمسودة.</small>
+                </div>
               </div>
             </div>
 
