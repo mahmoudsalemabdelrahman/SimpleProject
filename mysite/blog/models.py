@@ -4,6 +4,8 @@ from django.utils.text import slugify
 import unicodedata
 import re
 from autoslug import AutoSlugField
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 
 class Category(models.Model):
     name = models.CharField(max_length=200, unique=True)
@@ -220,17 +222,16 @@ class Subscriber(models.Model):
 
 class Bookmark(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookmarks')
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, null=True, blank=True)
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True, blank=True)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = [['user', 'post'], ['user', 'course']]
+        unique_together = ('user', 'content_type', 'object_id')
 
     def __str__(self):
-        if self.post:
-            return f"{self.user.username} bookmarked {self.post.title}"
-        return f"{self.user.username} bookmarked {self.course.title}"
+        return f"{self.user.username} bookmarked {self.content_object}"
 
 
 # ============= Certificate System =============
@@ -339,6 +340,51 @@ class QuizAttempt(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.quiz.title} (Attempt {self.attempt_number})"
     
+    def process_submission(self, data):
+        if self.is_completed:
+            return False
+            
+        from django.utils import timezone
+        self.end_time = timezone.now()
+        self.is_completed = True
+        
+        # We need to import UserAnswer here or use string reference if it was a ForeignKey, 
+        # but since we are creating objects, we need the class.
+        # Since UserAnswer is defined BELOW, we can't use it directly if this method runs at module level (it doesn't).
+        # But we can use it inside method.
+        # However, to be safe and avoid circular/not-defined issues if moved, we can use apps.get_model or just assume it's there.
+        # Given it's the same file, it's fine.
+        
+        for question in self.quiz.questions.all():
+            answer_id = data.get(f'question_{question.id}')
+            text_answer = data.get(f'text_{question.id}', '')
+            
+            if answer_id:
+                try:
+                    selected_answer = Answer.objects.get(pk=int(answer_id), question=question)
+                    user_answer = UserAnswer.objects.create(
+                        attempt=self,
+                        question=question,
+                        selected_answer=selected_answer,
+                        text_answer=text_answer
+                    )
+                    user_answer.check_answer()
+                except (Answer.DoesNotExist, ValueError):
+                    UserAnswer.objects.create(
+                        attempt=self,
+                        question=question,
+                        text_answer=text_answer
+                    )
+            elif text_answer:
+                UserAnswer.objects.create(
+                    attempt=self,
+                    question=question,
+                    text_answer=text_answer
+                )
+        
+        self.calculate_score()
+        return True
+
     def calculate_score(self):
         total_points = self.quiz.total_points()
         if total_points == 0:

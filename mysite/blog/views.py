@@ -5,12 +5,17 @@ from django.core.paginator import Paginator
 from django.db.models import Q, Count
 from django.utils import timezone
 from django.urls import reverse
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth import get_user_model
 import random
+import time
+from datetime import datetime, timedelta
+
 from .models import (
     Post, Category, Comment, Tag, SiteSetting,
     Course, Lesson, Enrollment, LessonProgress, Order,
     Certificate, Quiz, Question, Answer, QuizAttempt, UserAnswer,
-    Video, Notification
+    Video, Notification, Bookmark, Review, Subscriber
 )
 from .forms import (
     PostForm, CommentForm, CategoryForm, ContactForm, SiteSettingForm,
@@ -18,11 +23,7 @@ from .forms import (
 )
 from .certificate_generator import generate_certificate_pdf
 
-
-
-
-
-
+User = get_user_model()
 
 
 def staff_check(user):
@@ -42,7 +43,6 @@ def post_list(request):
     posts = Post.objects.filter(published=True).order_by('-created_at')
     
     # Unified Search: Search Courses too
-    from .models import Course
     courses = Course.objects.none()
 
     if q:
@@ -136,7 +136,6 @@ def post_detail(request, slug):
     # Check if bookmarked
     is_bookmarked = False
     if request.user.is_authenticated:
-        from .models import Bookmark
         is_bookmarked = Bookmark.objects.filter(user=request.user, post=post).exists()
 
     return render(request, 'blog/post_detail.html', {
@@ -234,10 +233,10 @@ def comment_delete(request, pk):
 def admin_dashboard(request):
     posts_count = Post.objects.count()
     comments_count = Comment.objects.count()
-    users_count = __import__('django.contrib.auth').contrib.auth.get_user_model().objects.count()
+    users_count = User.objects.count()
     recent_posts = Post.objects.order_by('-created_at')[:5]
     recent_comments = Comment.objects.order_by('-created_at')[:5]
-    recent_users = __import__('django.contrib.auth').contrib.auth.get_user_model().objects.order_by('-date_joined')[:5]
+    recent_users = User.objects.order_by('-date_joined')[:5]
 
     context = {
         'posts_count': posts_count,
@@ -252,7 +251,6 @@ def admin_dashboard(request):
 
 @user_passes_test(staff_check)
 def manage_users(request):
-    User = __import__('django.contrib.auth').contrib.auth.get_user_model()
     users = User.objects.all().order_by('-date_joined')
     
     if request.method == "POST":
@@ -320,9 +318,6 @@ def news_list(request):
 
 
 def course_list(request):
-    from .models import Course
-    from django.db.models import Count
-    
     courses = Course.objects.all().annotate(enrollment_count=Count('enrollments'))
     
     # Search
@@ -359,8 +354,6 @@ def course_list(request):
 
 
 def course_detail(request, pk):
-    from .models import Course, Enrollment, LessonProgress, Review, Bookmark
-    from .forms import ReviewForm
     course = get_object_or_404(Course, pk=pk)
     
     # Track views using session
@@ -414,7 +407,6 @@ def course_detail(request, pk):
 
 
 def video_list(request):
-    from .models import Video
     videos = Video.objects.all().order_by('-created_at')
     live_stream = Video.objects.filter(is_live=True).first()
     return render(request, 'blog/video_list.html', {'videos': videos, 'live_stream': live_stream})
@@ -423,7 +415,6 @@ def video_list(request):
 @login_required
 @user_passes_test(staff_check)
 def course_create(request):
-    from .forms import CourseForm
     if request.method == "POST":
         form = CourseForm(request.POST, request.FILES)
         if form.is_valid():
@@ -437,7 +428,6 @@ def course_create(request):
 @login_required
 @user_passes_test(staff_check)
 def lesson_create(request):
-    from .forms import LessonForm
     if request.method == "POST":
         form = LessonForm(request.POST)
         if form.is_valid():
@@ -451,7 +441,6 @@ def lesson_create(request):
 @login_required
 @user_passes_test(staff_check)
 def video_create(request):
-    from .forms import VideoForm
     if request.method == "POST":
         form = VideoForm(request.POST, request.FILES)
         if form.is_valid():
@@ -464,7 +453,6 @@ def video_create(request):
 
 @login_required
 def course_enroll(request, pk):
-    from .models import Course, Enrollment, Order
     course = get_object_or_404(Course, pk=pk)
     
     # Check if already enrolled
@@ -495,7 +483,6 @@ def course_enroll(request, pk):
 
 @login_required
 def checkout(request, order_id):
-    from .models import Order
     order = get_object_or_404(Order, id=order_id, user=request.user, status='pending')
     return render(request, 'blog/checkout.html', {'order': order})
 
@@ -503,8 +490,6 @@ def checkout(request, order_id):
 @login_required
 def process_payment(request, order_id):
     """Simulate Payment Processing"""
-    from .models import Order, Enrollment
-    import time
     
     if request.method != "POST":
         return redirect('checkout', order_id=order_id)
@@ -526,14 +511,12 @@ def process_payment(request, order_id):
 
 @login_required
 def payment_success(request, order_id):
-    from .models import Order
     order = get_object_or_404(Order, id=order_id, user=request.user, status='completed')
     return render(request, 'blog/payment_success.html', {'order': order})
 
 
 @login_required
 def mark_lesson_complete(request, pk):
-    from .models import Lesson, LessonProgress
 
     if request.method == "POST":
         lesson = get_object_or_404(Lesson, pk=pk)
@@ -546,9 +529,6 @@ def mark_lesson_complete(request, pk):
 
 @login_required
 def student_dashboard(request):
-    from .models import Enrollment, LessonProgress
-    from datetime import datetime, timedelta
-    from django.db.models import Count
     
     # 1. Fetch all enrollments with course details (select_related)
     enrollments = Enrollment.objects.filter(user=request.user).select_related('course')
@@ -622,7 +602,6 @@ def student_dashboard(request):
 
 
 def subscribe_newsletter(request):
-    from .forms import SubscriberForm
 
     if request.method == "POST":
         form = SubscriberForm(request.POST)
@@ -679,31 +658,35 @@ def sitemap(request):
 
 @login_required
 def toggle_bookmark(request, content_type, pk):
-    from .models import Bookmark
-
-    
-    if content_type == 'post':
-        post = get_object_or_404(Post, pk=pk)
-        bookmark, created = Bookmark.objects.get_or_create(user=request.user, post=post)
+    try:
+        if content_type == 'post':
+            model = Post
+        elif content_type == 'course':
+            model = Course
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Invalid content type'}, status=400)
+            
+        obj = get_object_or_404(model, pk=pk)
+        ct = ContentType.objects.get_for_model(model)
+        
+        bookmark, created = Bookmark.objects.get_or_create(
+            user=request.user, 
+            content_type=ct, 
+            object_id=obj.pk
+        )
+        
         if not created:
             bookmark.delete()
             return JsonResponse({'status': 'removed', 'message': 'تم إلغاء الحفظ'})
         return JsonResponse({'status': 'added', 'message': 'تم الحفظ بنجاح'})
-    elif content_type == 'course':
-        course = get_object_or_404(Course, pk=pk)
-        bookmark, created = Bookmark.objects.get_or_create(user=request.user, course=course)
-        if not created:
-            bookmark.delete()
-            return JsonResponse({'status': 'removed', 'message': 'تم إلغاء الحفظ'})
-        return JsonResponse({'status': 'added', 'message': 'تم الحفظ بنجاح'})
-    
-    return JsonResponse({'status': 'error'}, status=400)
+        
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 
 @login_required
 def my_bookmarks(request):
-    from .models import Bookmark
-    bookmarks = Bookmark.objects.filter(user=request.user).select_related('post', 'course').order_by('-created_at')
+    bookmarks = Bookmark.objects.filter(user=request.user).prefetch_related('content_object').order_by('-created_at')
     return render(request, 'blog/my_bookmarks.html', {'bookmarks': bookmarks})
 
 
@@ -789,11 +772,9 @@ def my_certificates(request):
 @login_required
 def quiz_list(request, course_id):
     """List all quizzes for a course"""
-    from .models import Course, Quiz, QuizAttempt
     course = get_object_or_404(Course, pk=course_id)
     
     # Check if enrolled
-    from .models import Enrollment
     is_enrolled = Enrollment.objects.filter(user=request.user, course=course).exists()
     if not is_enrolled:
         return redirect('course_detail', pk=course_id)
@@ -826,7 +807,6 @@ def quiz_detail(request, quiz_id):
     quiz = get_object_or_404(Quiz, pk=quiz_id)
     
     # Check if enrolled
-    from .models import Enrollment
     is_enrolled = Enrollment.objects.filter(user=request.user, course=quiz.course).exists()
     if not is_enrolled:
         return redirect('course_detail', pk=quiz.course.id)
@@ -852,7 +832,6 @@ def take_quiz(request, quiz_id):
     quiz = get_object_or_404(Quiz, pk=quiz_id)
     
     # Check if enrolled
-    from .models import Enrollment
     is_enrolled = Enrollment.objects.filter(user=request.user, course=quiz.course).exists()
     if not is_enrolled:
         return redirect('course_detail', pk=quiz.course.id)
@@ -894,46 +873,11 @@ def submit_quiz(request, attempt_id):
     if attempt.is_completed:
         return JsonResponse({'error': 'الاختبار مكتمل بالفعل'}, status=400)
     
-    # Mark end time and completion status
-    attempt.end_time = timezone.now()
-    attempt.is_completed = True
-    
-    # Process answers
-    for question in attempt.quiz.questions.all():
-        answer_id = request.POST.get(f'question_{question.id}')
-        text_answer = request.POST.get(f'text_{question.id}', '')
-        
-        if answer_id:
-            try:
-                selected_answer = Answer.objects.get(pk=int(answer_id), question=question)
-                user_answer = UserAnswer.objects.create(
-                    attempt=attempt,
-                    question=question,
-                    selected_answer=selected_answer,
-                    text_answer=text_answer
-                )
-                user_answer.check_answer()
-            except (Answer.DoesNotExist, ValueError):
-                # Invalid answer, create empty user answer
-                UserAnswer.objects.create(
-                    attempt=attempt,
-                    question=question,
-                    text_answer=text_answer
-                )
-        elif text_answer:
-            # Short answer question
-            UserAnswer.objects.create(
-                attempt=attempt,
-                question=question,
-                text_answer=text_answer
-            )
-    
-    # Calculate score (this will save the attempt with all data)
-    percentage = attempt.calculate_score()
+    attempt.process_submission(request.POST)
     
     return JsonResponse({
         'status': 'success',
-        'percentage': float(percentage),
+        'percentage': float(attempt.percentage),
         'passed': attempt.passed,
         'redirect_url': f'/quiz/results/{attempt_id}/'
     })
@@ -1028,4 +972,3 @@ def mark_all_notifications_read(request):
     """Mark all notifications as read"""
     Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
     return JsonResponse({'status': 'success'})
-

@@ -1,9 +1,17 @@
 """
 Django signals for automatic notifications
 """
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-from .models import Comment, Course, Certificate, QuizAttempt, Enrollment, Notification
+from django.core.cache import cache
+from .models import Comment, Course, Certificate, QuizAttempt, Enrollment, Notification, Post
+
+
+@receiver(post_save, sender=Post)
+@receiver(post_delete, sender=Post)
+def clear_site_cache(sender, instance, **kwargs):
+    """Clear the entire site cache when a post is changed"""
+    cache.clear()
 
 
 @receiver(post_save, sender=Comment)
