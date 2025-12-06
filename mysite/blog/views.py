@@ -10,12 +10,13 @@ from django.contrib.auth import get_user_model
 import random
 import time
 from datetime import datetime, timedelta
+from django.db.models import Sum, Avg
 
 from .models import (
     Post, Category, Comment, Tag, SiteSetting,
     Course, Lesson, Enrollment, LessonProgress, Order,
     Certificate, Quiz, Question, Answer, QuizAttempt, UserAnswer,
-    Video, Notification, Bookmark, Review, Subscriber
+    Video, Notification, Bookmark, Review, Subscriber, Coupon
 )
 from .forms import (
     PostForm, CommentForm, CategoryForm, ContactForm, SiteSettingForm,
@@ -482,7 +483,86 @@ def course_enroll(request, pk):
 
 
 @login_required
+def apply_coupon(request):
+    if request.method == "POST":
+        import json
+        data = json.loads(request.body)
+        code = data.get('code')
+        order_id = data.get('order_id')
+        
+        try:
+            order = get_object_or_404(Order, id=order_id, user=request.user, status='pending')
+            coupon = Coupon.objects.get(code=code)
+            
+            if coupon.is_valid():
+                # Reset amount to original course price before applying discount
+                # This prevents double discounting if applied multiple times
+                original_price = order.course.price
+                discount_amount = (original_price * coupon.discount_percentage) / 100
+                final_price = original_price - discount_amount
+                
+                order.coupon = coupon
+                order.discount_amount = discount_amount
+                order.amount = final_price
+                order.save()
+                
+                # Increment usage count
+                coupon.used_count += 1
+                coupon.save()
+                
+                return JsonResponse({
+                    'status': 'success',
+                    'discount_amount': float(discount_amount),
+                    'final_price': float(final_price),
+                    'message': f'تم تطبيق خصم {coupon.discount_percentage}%'
+                })
+            else:
+                return JsonResponse({'status': 'error', 'message': 'الكوبون غير صالح أو منتهي الصلاحية'})
+        except Coupon.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'كود الكوبون غير صحيح'})
+        except Order.DoesNotExist:
+             return JsonResponse({'status': 'error', 'message': 'الطلب غير موجود'})
+            
+    return JsonResponse({'status': 'error'}, status=400)
+
+
+@login_required
+def get_notifications(request):
+    """API to get unread notifications"""
+    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')[:5]
+    unread_count = Notification.objects.filter(user=request.user, is_read=False).count()
+    
+    data = {
+        'unread_count': unread_count,
+        'notifications': [
+            {
+                'id': n.id,
+                'title': n.title,
+                'message': n.message,
+                'link': n.link,
+                'is_read': n.is_read,
+                'created_at': n.created_at.strftime('%Y-%m-%d %H:%M'),
+                'type': n.notification_type
+            } for n in notifications
+        ]
+    }
+    return JsonResponse(data)
+
+
+@login_required
+def mark_notification_read(request, notification_id):
+    """API to mark notification as read"""
+    if request.method == "POST":
+        notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+        notification.is_read = True
+        notification.save()
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=400)
+
+
+@login_required
 def checkout(request, order_id):
+
     order = get_object_or_404(Order, id=order_id, user=request.user, status='pending')
     return render(request, 'blog/checkout.html', {'order': order})
 
@@ -524,6 +604,27 @@ def mark_lesson_complete(request, pk):
         progress.is_completed = not progress.is_completed # Toggle status
         progress.save()
         return JsonResponse({'status': 'success', 'is_completed': progress.is_completed})
+    return JsonResponse({'status': 'error'}, status=400)
+
+
+@login_required
+def track_time(request, lesson_id):
+    """Track time spent on a lesson"""
+    if request.method == "POST":
+        lesson = get_object_or_404(Lesson, pk=lesson_id)
+        progress, created = LessonProgress.objects.get_or_create(user=request.user, lesson=lesson)
+        
+        # Add time (default 30 seconds per heartbeat)
+        try:
+            duration = int(request.POST.get('duration', 30))
+        except ValueError:
+            duration = 30
+            
+        progress.time_spent += duration
+        progress.last_viewed = timezone.now()
+        progress.save()
+        
+        return JsonResponse({'status': 'success', 'time_spent': progress.time_spent})
     return JsonResponse({'status': 'error'}, status=400)
 
 
@@ -602,7 +703,6 @@ def student_dashboard(request):
 
 
 def subscribe_newsletter(request):
-
     if request.method == "POST":
         form = SubscriberForm(request.POST)
         if form.is_valid():
@@ -614,46 +714,6 @@ def subscribe_newsletter(request):
 
 def privacy_policy(request):
     return render(request, 'blog/privacy_policy.html')
-
-
-def sitemap(request):
-    # Generate XML sitemap
-    xml_content = '''<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-    <url>
-        <loc>{}</loc>
-        <priority>1.0</priority>
-    </url>
-    <url>
-        <loc>{}</loc>
-        <priority>0.8</priority>
-    </url>
-    <url>
-        <loc>{}</loc>
-        <priority>0.8</priority>
-    </url>
-    <url>
-        <loc>{}</loc>
-        <priority>0.8</priority>
-    </url>
-    <url>
-        <loc>{}</loc>
-        <priority>0.7</priority>
-    </url>
-    <url>
-        <loc>{}</loc>
-        <priority>0.7</priority>
-    </url>
-</urlset>'''.format(
-        request.build_absolute_uri(reverse('post_list')),
-        request.build_absolute_uri(reverse('news_list')),
-        request.build_absolute_uri(reverse('course_list')),
-        request.build_absolute_uri(reverse('video_list')),
-        request.build_absolute_uri(reverse('about')),
-        request.build_absolute_uri(reverse('contact'))
-    )
-    
-    return HttpResponse(xml_content, content_type='application/xml')
 
 
 @login_required

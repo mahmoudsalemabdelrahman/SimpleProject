@@ -26,11 +26,21 @@
                         </div>
                     </div>
 
+                    <!-- Coupon Section -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">كود الخصم</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="couponCode" placeholder="أدخل كود الخصم">
+                            <button class="btn btn-outline-primary" type="button" id="applyCouponBtn">تطبيق</button>
+                        </div>
+                        <div id="couponMessage" class="mt-2 small"></div>
+                    </div>
+
                     <form action="{% url 'process_payment' order.id %}" method="POST" id="paymentForm">
                         {% csrf_token %}
                         <div class="d-grid gap-3">
                             <button type="submit" class="btn btn-primary btn-lg rounded-pill py-3 fw-bold shadow-sm" id="payButton">
-                                <span id="btnText">دفع الآن <i class="bi bi-arrow-left ms-2"></i></span>
+                                <span id="btnText">دفع <span id="finalPrice">${{ order.amount }}</span> <i class="bi bi-arrow-left ms-2"></i></span>
                                 <span id="btnSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                             </button>
                             <a href="{% url 'course_detail' order.course.id %}" class="btn btn-outline-secondary rounded-pill">إلغاء</a>
@@ -46,13 +56,55 @@
 </div>
 
 <script>
+    // Coupon Logic
+    document.getElementById('applyCouponBtn').addEventListener('click', function() {
+        const code = document.getElementById('couponCode').value;
+        const btn = this;
+        const msgDiv = document.getElementById('couponMessage');
+        
+        if (!code) return;
+        
+        btn.disabled = true;
+        btn.textContent = 'جاري التحقق...';
+        msgDiv.innerHTML = '';
+        
+        fetch('{% url "apply_coupon" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                code: code,
+                order_id: {{ order.id }}
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.textContent = 'تطبيق';
+            
+            if (data.status === 'success') {
+                msgDiv.innerHTML = `<span class="text-success"><i class="bi bi-check-circle me-1"></i> ${data.message}</span>`;
+                document.getElementById('finalPrice').textContent = '$' + data.final_price;
+                
+                // Add hidden input for coupon if needed, or handle on backend via session/order update
+                // For now, we just updated the display. The backend process_payment needs to be aware.
+                // Ideally, apply_coupon should update the order in DB or session.
+                // Let's assume apply_coupon updates the order or we send the code with payment.
+            } else {
+                msgDiv.innerHTML = `<span class="text-danger"><i class="bi bi-exclamation-circle me-1"></i> ${data.message}</span>`;
+            }
+        });
+    });
+
     document.getElementById('paymentForm').addEventListener('submit', function() {
         var btn = document.getElementById('payButton');
         var text = document.getElementById('btnText');
         var spinner = document.getElementById('btnSpinner');
         
         btn.disabled = true;
-        text.textContent = 'جاري المعالجة...';
+        // text.textContent = 'جاري المعالجة...'; // Keep price visible
         spinner.classList.remove('d-none');
     });
 </script>

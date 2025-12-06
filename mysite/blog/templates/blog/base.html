@@ -381,50 +381,69 @@ document.getElementById('newsletterForm')?.addEventListener('submit', function(e
 </script>
 
 <script>
-// Fetch unread count on page load
-function updateNotificationBadge() {
-    fetch('{% url "get_unread_count" %}')
+// Notification System
+const NOTIFICATION_API_URL = "{% url 'get_notifications' %}";
+const NOTIFICATION_READ_URL_TEMPLATE = "{% url 'mark_notification_read' 0 %}".replace('0', '');
+
+function updateNotifications() {
+    fetch(NOTIFICATION_API_URL)
         .then(res => res.json())
         .then(data => {
+            // Update Badge
             const badge = document.getElementById('notification-badge');
-            if (data.count > 0) {
-                badge.textContent = data.count;
+            if (data.unread_count > 0) {
+                badge.textContent = data.unread_count;
                 badge.style.display = 'inline-block';
             } else {
                 badge.style.display = 'none';
             }
+
+            // Update Dropdown List
+            const container = document.getElementById('notifications-dropdown');
+            container.innerHTML = '';
+
+            if (data.notifications.length === 0) {
+                container.innerHTML = '<li class="px-3 py-4 text-center text-muted"><i class="bi bi-bell-slash fs-3 d-block mb-2"></i><small>لا توجد إشعارات جديدة</small></li>';
+            } else {
+                data.notifications.forEach(n => {
+                    const item = document.createElement('li');
+                    item.className = `px-3 py-2 border-bottom ${n.is_read ? '' : 'bg-light'}`;
+                    item.innerHTML = `
+                        <a href="${n.link}" class="text-decoration-none text-dark d-block" onclick="markAsRead(event, ${n.id}, '${n.link}')">
+                            <div class="d-flex align-items-start">
+                                <i class="bi bi-info-circle-fill text-primary mt-1 me-2"></i>
+                                <div>
+                                    <h6 class="mb-1 fw-bold small">${n.title}</h6>
+                                    <p class="mb-1 small text-muted text-truncate" style="max-width: 250px;">${n.message}</p>
+                                    <small class="text-muted" style="font-size: 0.7rem;">${n.created_at}</small>
+                                </div>
+                            </div>
+                        </a>
+                    `;
+                    container.appendChild(item);
+                });
+            }
         });
 }
 
-// Load notifications when dropdown is shown
-document.addEventListener('click', function(e) {
-    if (e.target.closest('.nav-item.dropdown') && e.target.closest('#notification-badge')) {
-        // clicked on bell icon
-        fetch('{% url "notifications_list" %}')
-            .then(res => res.text())
-            .then(html => {
-                // Parse returned HTML to extract list items (we will render a partial view)
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const items = doc.querySelectorAll('#notifications-list .notification-item');
-                const container = document.getElementById('notifications-dropdown');
-                container.innerHTML = '';
-                if (items.length === 0) {
-                    container.innerHTML = '<li class="px-3 py-4 text-center text-muted"><i class="bi bi-bell-slash fs-3 d-block mb-2"></i><small>لا توجد إشعارات جديدة</small></li>';
-                } else {
-                    items.forEach(item => {
-                        container.appendChild(item);
-                    });
-                }
-                // Mark all as read after opening
-                fetch('{% url "mark_all_notifications_read" %}')
-                    .then(() => updateNotificationBadge());
-            });
-    }
-});
+function markAsRead(event, id, link) {
+    event.preventDefault();
+    fetch(NOTIFICATION_READ_URL_TEMPLATE + id + '/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    }).then(() => {
+        window.location.href = link;
+    });
+}
+
+// Poll every 30 seconds
+setInterval(updateNotifications, 30000);
 
 // Initial load
-document.addEventListener('DOMContentLoaded', updateNotificationBadge);
+document.addEventListener('DOMContentLoaded', updateNotifications);
+</script>
 
 // ========== Dark Mode Toggle ==========
 const themeToggle = document.getElementById('theme-toggle');

@@ -19,3 +19,5 @@ cffi
 pycparser
 reportlab
 qrcode[pil]
+xhtml2pdf
+django-ckeditor-5

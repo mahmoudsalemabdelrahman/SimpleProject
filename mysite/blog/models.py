@@ -6,6 +6,9 @@ import re
 from autoslug import AutoSlugField
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.models import ContentType
+from django.urls import reverse
+from django_ckeditor_5.fields import CKEditor5Field
 
 class Category(models.Model):
     name = models.CharField(max_length=200, unique=True)
@@ -35,7 +38,7 @@ class Tag(models.Model):
 
 class Post(models.Model):
     title = models.CharField(max_length=200, db_index=True)
-    content = models.TextField()
+    content = CKEditor5Field('Content', config_name='extends')
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     category = models.ForeignKey('Category', on_delete=models.SET_NULL, null=True, blank=True)
     tags = models.ManyToManyField(Tag, blank=True, related_name='posts')
@@ -66,6 +69,9 @@ class Post(models.Model):
 
     def __str__(self):
         return self.title
+
+    def get_absolute_url(self):
+        return reverse('post_detail', kwargs={'slug': self.slug})
 
     class Meta:
         ordering = ['-created_at']
@@ -146,12 +152,18 @@ class Course(models.Model):
     def __str__(self):
         return self.title
 
+    def get_absolute_url(self):
+        return reverse('course_detail', kwargs={'pk': self.pk})
+
+    certificate_template = models.ForeignKey('CertificateTemplate', on_delete=models.SET_NULL, null=True, blank=True)
+
+
 
 class Lesson(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='lessons')
     title = models.CharField(max_length=200)
     video_url = models.URLField(blank=True, help_text="YouTube or Vimeo URL")
-    content = models.TextField(blank=True)
+    content = CKEditor5Field('Content', config_name='extends', blank=True)
     order = models.PositiveIntegerField(default=0)
 
     class Meta:
@@ -190,6 +202,9 @@ class LessonProgress(models.Model):
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
     is_completed = models.BooleanField(default=False)
     completed_at = models.DateTimeField(auto_now=True)
+    time_spent = models.PositiveIntegerField(default=0, help_text="Time spent in seconds")
+    last_viewed = models.DateTimeField(auto_now=True)
+
 
     class Meta:
         unique_together = ('user', 'lesson')
@@ -449,6 +464,27 @@ class Notification(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.title}"
 
+
+class Coupon(models.Model):
+    code = models.CharField(max_length=50, unique=True)
+    discount_percentage = models.IntegerField(help_text="Percentage between 1 and 100")
+    valid_from = models.DateTimeField()
+    valid_to = models.DateTimeField()
+    active = models.BooleanField(default=True)
+    usage_limit = models.PositiveIntegerField(default=100)
+    used_count = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return self.code
+
+    def is_valid(self):
+        from django.utils import timezone
+        now = timezone.now()
+        return (self.active and
+                self.valid_from <= now <= self.valid_to and
+                self.used_count < self.usage_limit)
+
+
 # ============= Payment System =============
 class Order(models.Model):
     STATUS_CHOICES = [
@@ -461,6 +497,8 @@ class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='orders')
     amount = models.DecimalField(max_digits=8, decimal_places=2)
+    coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null=True, blank=True)
+    discount_amount = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     transaction_id = models.CharField(max_length=100, unique=True, blank=True)
     
@@ -476,10 +514,25 @@ class Order(models.Model):
         
     def __str__(self):
         return f"Order #{self.id} - {self.user.username} - {self.course.title}"
-    
+
     def save(self, *args, **kwargs):
         if not self.transaction_id:
             import uuid
             self.transaction_id = f"TRX-{uuid.uuid4().hex[:12].upper()}"
         super().save(*args, **kwargs)
+
+
+class CertificateTemplate(models.Model):
+    name = models.CharField(max_length=100)
+    background_image = models.ImageField(upload_to='certificate_templates/', null=True, blank=True)
+    html_content = models.TextField(help_text="Use {{ student_name }}, {{ course_name }}, {{ completion_date }}, {{ certificate_id }} as placeholders.")
+    is_default = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+    
+    def __str__(self):
+        return self.name
 

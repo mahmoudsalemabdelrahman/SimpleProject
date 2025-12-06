@@ -18,6 +18,13 @@ from django.urls import path, include
 from django.contrib import admin
 from django.conf.urls.static import static
 from django.conf import settings
+from django.contrib.sitemaps.views import sitemap
+from blog.sitemaps import PostSitemap, CourseSitemap
+
+sitemaps = {
+    'posts': PostSitemap,
+    'courses': CourseSitemap,
+}
 
 
 urlpatterns = [
@@ -28,6 +35,8 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),  # Allauth URLs
     path('', include('blog.urls')),
     path('payments/', include('payments.urls')),
+    path("ckeditor5/", include('django_ckeditor_5.urls')),
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
 
 
 

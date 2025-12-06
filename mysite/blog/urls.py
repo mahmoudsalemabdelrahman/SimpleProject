@@ -37,9 +37,14 @@ urlpatterns = [
     path('dashboard/', views.student_dashboard, name='student_dashboard'),
     path('courses/<int:pk>/enroll/', views.course_enroll, name='course_enroll'),
     path('lessons/<int:pk>/complete/', views.mark_lesson_complete, name='mark_lesson_complete'),
+    path('lessons/<int:lesson_id>/track-time/', views.track_time, name='track_time'),
+    
+    path('notifications/api/', views.get_notifications, name='get_notifications'),
+    path('notifications/read/<int:notification_id>/', views.mark_notification_read, name='mark_notification_read'),
     
     # Payment System
     path('checkout/<int:order_id>/', views.checkout, name='checkout'),
+    path('checkout/apply-coupon/', views.apply_coupon, name='apply_coupon'),
     path('payment/process/<int:order_id>/', views.process_payment, name='process_payment'),
     path('payment/success/<int:order_id>/', views.payment_success, name='payment_success'),
     
@@ -48,7 +53,9 @@ urlpatterns = [
     
     # SEO & Legal
     path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
-    path('sitemap.xml', views.sitemap, name='sitemap'),
+    path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
+    # path('sitemap.xml', views.sitemap, name='sitemap'),  # Removed in favor of django.contrib.sitemaps
+    path('robots.txt', views.robots_txt, name='robots_txt'),
     path('robots.txt', views.robots_txt, name='robots_txt'),
     # Existing URLs continue...
     path('bookmark/<str:content_type>/<int:pk>/', views.toggle_bookmark, name='toggle_bookmark'),

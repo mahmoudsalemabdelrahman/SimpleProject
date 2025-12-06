@@ -1,29 +1,71 @@
 """
-Certificate PDF Generator using ReportLab
+Certificate PDF Generator using xhtml2pdf and ReportLab (Legacy)
 """
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.units import cm
 from reportlab.pdfgen import canvas
 from reportlab.lib.colors import HexColor
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.utils import ImageReader
 import qrcode
 from io import BytesIO
-from datetime import datetime
-import os
-
+from django.template import Context, Template
+from xhtml2pdf import pisa
+from django.conf import settings
 
 def generate_certificate_pdf(certificate, request=None):
     """
-    Generate a professional certificate PDF
+    Generate a professional certificate PDF.
+    Tries to use a CertificateTemplate (HTML) first, falls back to legacy ReportLab.
+    """
+    template_model = certificate.course.certificate_template
     
-    Args:
-        certificate: Certificate model instance
-        request: Django request object (optional, for building absolute URLs)
+    if not template_model:
+        # Fallback to default template if exists
+        from .models import CertificateTemplate
+        template_model = CertificateTemplate.objects.filter(is_default=True).first()
+        
+    if template_model:
+        return generate_html_certificate(certificate, template_model, request)
+    else:
+        return generate_legacy_certificate(certificate, request)
+
+def generate_html_certificate(certificate, template_model, request=None):
+    # Use HTML Template
+    html_content = template_model.html_content
     
-    Returns:
-        BytesIO object containing the PDF
+    # Context data
+    context_data = {
+        'student_name': certificate.user.get_full_name() or certificate.user.username,
+        'course_name': certificate.course.title,
+        'completion_date': certificate.completion_date.strftime("%B %d, %Y"),
+        'certificate_id': certificate.certificate_id,
+        'MEDIA_URL': settings.MEDIA_URL,
+        'STATIC_URL': settings.STATIC_URL,
+    }
+    
+    if template_model.background_image:
+         bg_url = template_model.background_image.url
+         if request:
+             bg_url = request.build_absolute_uri(bg_url)
+         context_data['background_image_url'] = bg_url
+
+    # Render template
+    template = Template(html_content)
+    context = Context(context_data)
+    rendered_html = template.render(context)
+    
+    # Generate PDF
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(rendered_html.encode("UTF-8")), result)
+    
+    if not pdf.err:
+        result.seek(0)
+        return result
+    return None
+
+def generate_legacy_certificate(certificate, request=None):
+    """
+    Legacy ReportLab Generator
     """
     # Create PDF in memory
     buffer = BytesIO()

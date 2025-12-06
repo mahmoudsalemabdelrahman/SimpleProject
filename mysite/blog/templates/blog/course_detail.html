@@ -76,7 +76,7 @@
                                 
                                 {% if lesson.content %}
                                     <div class="lesson-content text-muted">
-                                        {{ lesson.content|linebreaks }}
+                                        {{ lesson.content|safe }}
                                     </div>
                                 {% endif %}
                             {% else %}
@@ -219,6 +219,45 @@
                 `;
             }
         });
+    }
+
+    // Time Tracking
+    let trackingInterval;
+    const TRACKING_INTERVAL_MS = 30000; // 30 seconds
+
+    document.getElementById('lessonsAccordion').addEventListener('shown.bs.collapse', function (event) {
+        const lessonId = event.target.id.replace('collapse', '');
+        startTracking(lessonId);
+    });
+
+    document.getElementById('lessonsAccordion').addEventListener('hidden.bs.collapse', function (event) {
+        stopTracking();
+    });
+
+    function startTracking(lessonId) {
+        stopTracking(); // Stop any existing tracking
+        console.log('Started tracking lesson:', lessonId);
+        
+        trackingInterval = setInterval(() => {
+            fetch(`/lessons/${lessonId}/track-time/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `duration=${TRACKING_INTERVAL_MS / 1000}`
+            })
+            .then(res => res.json())
+            .then(data => console.log('Time tracked:', data));
+        }, TRACKING_INTERVAL_MS);
+    }
+
+    function stopTracking() {
+        if (trackingInterval) {
+            clearInterval(trackingInterval);
+            trackingInterval = null;
+            console.log('Stopped tracking');
+        }
     }
     </script>
 
