@@ -985,14 +985,14 @@ def quiz_review(request, attempt_id):
 @login_required
 def notifications_list(request):
     """List all notifications for current user"""
-    # Defensive approach: Fetch IDs first to avoid slicing issues with update
-    # This ensures we are working with a concrete list of IDs
-    notification_ids = list(Notification.objects.filter(user=request.user)
-                          .order_by('-created_at')
-                          .values_list('id', flat=True)[:50])
+    # Fetch queryset without slicing
+    notifications_qs = Notification.objects.filter(user=request.user).order_by('-created_at')
     
-    # Fetch actual objects
-    notifications = Notification.objects.filter(id__in=notification_ids).order_by('-created_at')
+    # Get first 50 IDs
+    notification_ids = list(notifications_qs.values_list('id', flat=True)[:50])
+    
+    # Fetch actual objects using the IDs
+    notifications = list(Notification.objects.filter(id__in=notification_ids).order_by('-created_at'))
     
     # Mark unread as read
     unread_ids = [n.id for n in notifications if not n.is_read]
