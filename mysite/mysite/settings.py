@@ -276,11 +276,12 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-# Allauth Settings
-ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
-ACCOUNT_EMAIL_REQUIRED = True
+# Allauth Settings (updated to non-deprecated API)
+# Use `ACCOUNT_LOGIN_METHODS` instead of the deprecated `ACCOUNT_AUTHENTICATION_METHOD`.
+ACCOUNT_LOGIN_METHODS = {'username', 'email'}  # accept username or email for login
+# Use `ACCOUNT_SIGNUP_FIELDS` to declare signup fields (replaces ACCOUNT_EMAIL_REQUIRED / ACCOUNT_USERNAME_REQUIRED)
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 ACCOUNT_EMAIL_VERIFICATION = 'optional'  # 'mandatory', 'optional', or 'none'
-ACCOUNT_USERNAME_REQUIRED = True
 LOGIN_REDIRECT_URL = '/dashboard/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 
