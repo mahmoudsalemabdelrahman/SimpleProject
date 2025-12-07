@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login, logout
 from .forms import UserEditForm, ProfileEditForm
+from .forms import UserRegistrationForm
 from .models import Profile
 
 def logout_view(request):
@@ -57,10 +58,12 @@ def register(request):
         return render(request, 'accounts/registration_closed.html')
 
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = UserRegistrationForm(request.POST)
         if form.is_valid():
             # Create user but don't activate yet
             user = form.save(commit=False)
+            # save email from form
+            user.email = form.cleaned_data.get('email')
             user.is_active = False  # Deactivate until email is verified
             user.save()
             
@@ -88,7 +91,7 @@ def register(request):
             
             return render(request, 'accounts/email_verification_sent.html', {'email': user.email})
     else:
-        form = UserCreationForm()
+        form = UserRegistrationForm()
     return render(request, 'accounts/register.html', {'form': form})
 
 
