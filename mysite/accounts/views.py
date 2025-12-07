@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login, logout
+from django.conf import settings
 from .forms import UserEditForm, ProfileEditForm
 from .forms import UserRegistrationForm
 from .models import Profile
@@ -84,7 +85,7 @@ def register(request):
             send_mail(
                 subject='تفعيل حسابك - مدونتي',
                 message=f'مرحباً {user.username}،\n\nيرجى تفعيل حسابك من خلال الرابط التالي:\n{verification_link}\n\nشكراً لك!',
-                from_email='noreply@mysite.com',
+                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@mysite.com'),
                 recipient_list=[user.email],
                 fail_silently=False,
             )

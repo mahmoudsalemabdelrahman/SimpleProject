@@ -261,18 +261,20 @@ MEDIA_ROOT = BASE_DIR / 'media'
 handler404 = 'blog.views.custom_404'
 
 # Email Configuration
-# For development: Emails will print to console
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Read email configuration from environment (via decouple `config`).
+# Defaults to console backend for development. To enable SMTP in production,
+# set the appropriate environment variables (EMAIL_BACKEND, EMAIL_HOST, etc.).
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
 
-# For production, use SMTP (uncomment and configure):
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = 'your-email@gmail.com'
-# EMAIL_HOST_PASSWORD = 'your-app-password'
+# SMTP optional settings (used when EMAIL_BACKEND is smtp)
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 
-DEFAULT_FROM_EMAIL = 'noreply@mysite.com'
+# Default FROM address: use the address the user provided to be the sender
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='mahmoud19salem@gmail.com')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
