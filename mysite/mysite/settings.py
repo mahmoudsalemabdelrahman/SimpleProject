@@ -59,7 +59,6 @@ INSTALLED_APPS = [
     'django_extensions',
     'payments',
     'whitenoise.runserver_nostatic',  # Whitenoise for static files
-    'django_ckeditor_5',
 ]
 
 CKEDITOR_5_CONFIGS = {
@@ -124,6 +123,18 @@ CKEDITOR_5_CONFIGS = {
 }
 
 SITE_ID = 1
+
+# Make django-ckeditor-5 optional so the app can start if the package
+# isn't installed on the server. This helps avoid a hard import error
+# during WSGI startup. If the package is present it will be appended
+# to INSTALLED_APPS and a flag `CKEDITOR_5_AVAILABLE` will be True.
+try:
+    import django_ckeditor_5  # noqa: F401
+except Exception:
+    CKEDITOR_5_AVAILABLE = False
+else:
+    INSTALLED_APPS.append('django_ckeditor_5')
+    CKEDITOR_5_AVAILABLE = True
 
 # Caching Configuration
 CACHES = {
