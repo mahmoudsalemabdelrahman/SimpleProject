@@ -153,6 +153,8 @@ def post_detail(request, slug):
 @login_required
 @user_passes_test(staff_check)
 def post_create(request):
+    # Allow preselecting the post_type via GET parameter (e.g. ?post_type=news)
+    pre_post_type = request.GET.get('post_type')
     if request.method == "POST":
         form = PostForm(request.POST, request.FILES)
         if form.is_valid():
@@ -166,7 +168,11 @@ def post_create(request):
             form.save_m2m()  # حفظ الـ tags والعلاقات الأخرى
             return redirect('post_list')
     else:
-        form = PostForm()
+        # set initial post_type if provided
+        if pre_post_type:
+            form = PostForm(initial={'post_type': pre_post_type})
+        else:
+            form = PostForm()
     
     category_form = CategoryForm()
     return render(request, 'blog/post_form.html', {'form': form, 'category_form': category_form})
