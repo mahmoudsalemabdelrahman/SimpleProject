@@ -15,6 +15,7 @@
                 </button>
                 <ul class="dropdown-menu border-0 shadow-lg rounded-4 p-2">
                     <li><a class="dropdown-item rounded-3 py-2" href="{% url 'post_create' %}"><i class="bi bi-pencil-square me-2 text-primary"></i> مقال / خبر</a></li>
+                    <li><a class="dropdown-item rounded-3 py-2" href="{% url 'post_create' %}?post_type=news"><i class="bi bi-megaphone me-2 text-info"></i> أنشر خبر</a></li>
                     <li><a class="dropdown-item rounded-3 py-2" href="{% url 'course_create' %}"><i class="bi bi-mortarboard me-2 text-success"></i> كورس جديد</a></li>
                     <li><a class="dropdown-item rounded-3 py-2" href="{% url 'lesson_create' %}"><i class="bi bi-book me-2 text-info"></i> درس جديد</a></li>
                     <li><a class="dropdown-item rounded-3 py-2" href="{% url 'video_create' %}"><i class="bi bi-play-circle me-2 text-danger"></i> فيديو / بث</a></li>
