@@ -1,4 +1,4 @@
-Django>=5.2
+Django==5.2.8
 django-allauth
 django-autoslug
 django-extensions
