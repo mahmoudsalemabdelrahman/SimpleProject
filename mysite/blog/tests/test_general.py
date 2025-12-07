@@ -1,7 +1,7 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
-from .models import (
+from ..models import (
     Post, Category, Tag, ContactMessage, 
     Course, Lesson, Enrollment, Quiz, Question, Answer, QuizAttempt, Certificate
 )
@@ -170,7 +170,7 @@ class CertificateTests(TestCase):
         self.client.login(username='grad', password='password')
         
         # Complete lesson
-        from .models import LessonProgress
+        from ..models import LessonProgress
         LessonProgress.objects.create(user=self.user, lesson=self.lesson, is_completed=True)
         
         response = self.client.get(reverse('generate_certificate', args=[self.course.id]))
