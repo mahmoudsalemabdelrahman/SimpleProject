@@ -5,6 +5,17 @@ from django.conf import settings
 from django.db import migrations, models
 
 
+def delete_null_bookmarks(apps, schema_editor):
+    Bookmark = apps.get_model('blog', 'Bookmark')
+    # delete bookmarks with missing content_type or object_id to avoid NOT NULL conflicts
+    qs1 = Bookmark.objects.filter(content_type__isnull=True)
+    if qs1.exists():
+        qs1.delete()
+    qs2 = Bookmark.objects.filter(object_id__isnull=True)
+    if qs2.exists():
+        qs2.delete()
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -14,6 +25,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunPython(delete_null_bookmarks, reverse_code=migrations.RunPython.noop),
         migrations.AlterField(
             model_name='bookmark',
             name='content_type',
