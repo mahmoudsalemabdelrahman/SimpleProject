@@ -18,11 +18,22 @@ class ProfileEditForm(forms.ModelForm):
 
 class UserRegistrationForm(UserCreationForm):
     """Registration form that includes email (required) and validates uniqueness."""
-    email = forms.EmailField(required=True, label='البريد الإلكتروني')
+    email = forms.EmailField(
+        required=True,
+        label='البريد الإلكتروني',
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'required': 'required', 'placeholder': 'example@domain.com'})
+    )
 
     class Meta:
         model = User
         fields = ('username', 'email', 'password1', 'password2')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add bootstrap classes to password/username widgets as well
+        self.fields['username'].widget.attrs.update({'class': 'form-control', 'placeholder': 'اسم المستخدم'})
+        self.fields['password1'].widget.attrs.update({'class': 'form-control', 'placeholder': 'كلمة المرور'})
+        self.fields['password2'].widget.attrs.update({'class': 'form-control', 'placeholder': 'تأكيد كلمة المرور'})
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
