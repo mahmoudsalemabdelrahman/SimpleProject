@@ -445,8 +445,8 @@ setInterval(updateNotifications, 30000);
 document.addEventListener('DOMContentLoaded', updateNotifications);
 </script>
 
-// ========== Dark Mode Toggle ==========
 <script>
+// Dark Mode Toggle
 const themeToggle = document.getElementById('theme-toggle');
 const themeIcon = document.getElementById('theme-icon');
 const htmlElement = document.documentElement;
@@ -454,20 +454,22 @@ const htmlElement = document.documentElement;
 // Load saved theme from localStorage
 const savedTheme = localStorage.getItem('theme') || 'light';
 htmlElement.setAttribute('data-theme', savedTheme);
-updateThemeIcon(savedTheme);
+if (themeIcon) updateThemeIcon(savedTheme);
 
-// Toggle theme on button click
-themeToggle.addEventListener('click', () => {
-    const currentTheme = htmlElement.getAttribute('data-theme');
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    
-    htmlElement.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-    updateThemeIcon(newTheme);
-});
+// Toggle theme on button click (guard in case button is not present)
+if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+        const currentTheme = htmlElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        htmlElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        if (themeIcon) updateThemeIcon(newTheme);
+    });
+}
 
 // Update icon based on theme
 function updateThemeIcon(theme) {
+    if (!themeIcon) return;
     if (theme === 'dark') {
         themeIcon.classList.remove('bi-moon-stars-fill');
         themeIcon.classList.add('bi-sun-fill');
