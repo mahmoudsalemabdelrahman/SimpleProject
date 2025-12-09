@@ -137,7 +137,12 @@ def post_detail(request, slug):
     # Check if bookmarked
     is_bookmarked = False
     if request.user.is_authenticated:
-        is_bookmarked = Bookmark.objects.filter(user=request.user, post=post).exists()
+        post_content_type = ContentType.objects.get_for_model(Post)
+        is_bookmarked = Bookmark.objects.filter(
+            user=request.user,
+            content_type=post_content_type,
+            object_id=post.id
+        ).exists()
 
     return render(request, 'blog/post_detail.html', {
         'post': post,
@@ -377,7 +382,12 @@ def course_detail(request, pk):
     
     if request.user.is_authenticated:
         is_enrolled = Enrollment.objects.filter(user=request.user, course=course).exists()
-        is_bookmarked = Bookmark.objects.filter(user=request.user, course=course).exists()
+        course_content_type = ContentType.objects.get_for_model(Course)
+        is_bookmarked = Bookmark.objects.filter(
+            user=request.user,
+            content_type=course_content_type,
+            object_id=course.id
+        ).exists()
         
         if is_enrolled:
             completed_lessons = LessonProgress.objects.filter(
