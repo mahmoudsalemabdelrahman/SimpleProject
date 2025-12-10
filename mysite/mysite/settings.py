@@ -264,7 +264,7 @@ handler404 = 'blog.views.custom_404'
 # Read email configuration from environment (via decouple `config`).
 # Defaults to console backend for development. To enable SMTP in production,
 # set the appropriate environment variables (EMAIL_BACKEND, EMAIL_HOST, etc.).
-EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
 
 # SMTP optional settings (used when EMAIL_BACKEND is smtp)
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
@@ -294,7 +294,7 @@ AUTHENTICATION_BACKENDS = [
 ACCOUNT_LOGIN_METHODS = {'username', 'email'}  # accept username or email for login
 # Use `ACCOUNT_SIGNUP_FIELDS` to declare signup fields (replaces ACCOUNT_EMAIL_REQUIRED / ACCOUNT_USERNAME_REQUIRED)
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
-ACCOUNT_EMAIL_VERIFICATION = 'optional'  # 'mandatory', 'optional', or 'none'
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'  # 'mandatory', 'optional', or 'none'
 LOGIN_REDIRECT_URL = '/dashboard/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 
